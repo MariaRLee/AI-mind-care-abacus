@@ -1,0 +1,473 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>AI-Mind Care 算盤算力｜第一版</title>
+  <style>
+    :root{
+      --bg:#f5f7fa;
+      --card:#ffffff;
+      --text:#1f2937;
+      --muted:#6b7280;
+      --line:#d1d5db;
+      --frame:#7c4a2d;
+      --rod:#9ca3af;
+      --bead:#d69a55;
+      --bead-active:#b96f2f;
+      --accent:#2563eb;
+      --success:#15803d;
+      --danger:#b91c1c;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      min-height:100vh;
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC",Arial,sans-serif;
+      background:var(--bg);
+      color:var(--text);
+      padding:18px;
+    }
+    .app{max-width:920px;margin:0 auto}
+    header{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-end;
+      gap:16px;
+      margin-bottom:14px;
+    }
+    h1{font-size:clamp(24px,4vw,38px);margin:0}
+    .subtitle{margin:5px 0 0;color:var(--muted)}
+    .stats{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+    .pill{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:999px;
+      padding:8px 12px;
+      font-weight:700;
+      white-space:nowrap;
+    }
+    .panel{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:18px;
+      box-shadow:0 8px 24px rgba(0,0,0,.05);
+    }
+    .question-row{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      flex-wrap:wrap;
+      margin-bottom:14px;
+    }
+    .question{
+      font-size:clamp(30px,7vw,54px);
+      font-weight:800;
+      letter-spacing:.03em;
+    }
+    .value-box{
+      text-align:right;
+      min-width:150px;
+    }
+    .value-label{color:var(--muted);font-size:14px}
+    .value{
+      font-size:34px;
+      font-weight:800;
+      color:var(--accent);
+    }
+
+    .abacus-wrap{overflow-x:auto;padding:6px 0 10px}
+    .abacus{
+      position:relative;
+      min-width:560px;
+      height:430px;
+      border:18px solid var(--frame);
+      border-radius:16px;
+      background:#fffaf3;
+      padding:0 28px;
+      user-select:none;
+      touch-action:manipulation;
+    }
+    .beam{
+      position:absolute;
+      left:0;right:0;
+      top:150px;
+      height:20px;
+      background:var(--frame);
+      z-index:3;
+    }
+    .columns{
+      height:100%;
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      gap:26px;
+      position:relative;
+      z-index:1;
+    }
+    .column{
+      position:relative;
+      height:100%;
+      display:flex;
+      justify-content:center;
+    }
+    .rod{
+      position:absolute;
+      top:0;bottom:0;
+      width:6px;
+      background:var(--rod);
+      border-radius:4px;
+    }
+    .place{
+      position:absolute;
+      bottom:7px;
+      background:#fff;
+      border:1px solid var(--line);
+      border-radius:999px;
+      padding:4px 9px;
+      font-size:13px;
+      font-weight:700;
+      z-index:5;
+    }
+    .bead{
+      position:absolute;
+      width:76px;
+      height:34px;
+      border:none;
+      border-radius:50% / 42%;
+      background:linear-gradient(#e8b779,#c9853c);
+      box-shadow:0 3px 6px rgba(0,0,0,.2), inset 0 2px 2px rgba(255,255,255,.5);
+      cursor:pointer;
+      transition:top .18s ease, background .18s ease, transform .08s ease;
+      z-index:4;
+    }
+    .bead:active{transform:scale(.97)}
+    .bead.active{background:linear-gradient(#cf8440,#a95f24)}
+    .heaven{top:42px}
+    .heaven.active{top:110px}
+    .earth[data-index="0"]{top:188px}
+    .earth[data-index="1"]{top:230px}
+    .earth[data-index="2"]{top:272px}
+    .earth[data-index="3"]{top:314px}
+    .earth.active[data-index="0"]{top:170px}
+    .earth.active[data-index="1"]{top:204px}
+    .earth.active[data-index="2"]{top:238px}
+    .earth.active[data-index="3"]{top:272px}
+
+    .actions{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top:14px;
+    }
+    button.action{
+      appearance:none;
+      border:none;
+      border-radius:12px;
+      padding:12px 18px;
+      font-size:17px;
+      font-weight:800;
+      cursor:pointer;
+    }
+    .primary{background:var(--accent);color:#fff}
+    .secondary{background:#e5e7eb;color:#111827}
+    .message{
+      min-height:28px;
+      margin-top:12px;
+      font-weight:800;
+    }
+    .ok{color:var(--success)}
+    .bad{color:var(--danger)}
+    .report{
+      display:none;
+      margin-top:18px;
+      padding:18px;
+      border-radius:16px;
+      background:#f0fdf4;
+      border:1px solid #bbf7d0;
+    }
+    .report h2{margin:0 0 10px}
+    .report-grid{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:10px;
+    }
+    .metric{
+      background:#fff;
+      border:1px solid #d1fae5;
+      border-radius:12px;
+      padding:14px;
+      text-align:center;
+    }
+    .metric strong{display:block;font-size:27px}
+    .hint{
+      color:var(--muted);
+      font-size:14px;
+      margin-top:10px;
+      line-height:1.6;
+    }
+    @media (max-width:650px){
+      body{padding:10px}
+      header{align-items:flex-start;flex-direction:column}
+      .stats{justify-content:flex-start}
+      .panel{padding:12px}
+      .report-grid{grid-template-columns:1fr}
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header>
+      <div>
+        <h1>AI-Mind Care 算盤算力</h1>
+        <p class="subtitle">傳統一上珠、四下珠｜第一版實驗</p>
+      </div>
+      <div class="stats">
+        <div class="pill">題目 <span id="progress">1 / 5</span></div>
+        <div class="pill">時間 <span id="timer">00:00</span></div>
+        <div class="pill">答對 <span id="score">0</span></div>
+      </div>
+    </header>
+
+    <section class="panel">
+      <div class="question-row">
+        <div>
+          <div class="value-label">請用算盤撥出答案</div>
+          <div class="question" id="question">12 + 7</div>
+        </div>
+        <div class="value-box">
+          <div class="value-label">目前算盤數值</div>
+          <div class="value" id="currentValue">0</div>
+        </div>
+      </div>
+
+      <div class="abacus-wrap">
+        <div class="abacus" id="abacus" aria-label="模擬算盤">
+          <div class="beam"></div>
+          <div class="columns" id="columns"></div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="action primary" id="submitBtn">確認答案</button>
+        <button class="action secondary" id="resetBtn">歸零</button>
+        <button class="action secondary" id="restartBtn">重新開始</button>
+      </div>
+
+      <div class="message" id="message" aria-live="polite"></div>
+      <p class="hint">
+        點一下上珠，可切換 0／5；點下珠時，系統會依傳統算盤方式帶動相鄰珠子。
+        支援手機、平板與電腦操作。
+      </p>
+
+      <div class="report" id="report">
+        <h2>本次算力結果</h2>
+        <div class="report-grid">
+          <div class="metric"><span>正確題數</span><strong id="reportCorrect">0 / 5</strong></div>
+          <div class="metric"><span>正確率</span><strong id="reportAccuracy">0%</strong></div>
+          <div class="metric"><span>完成時間</span><strong id="reportTime">00:00</strong></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+<script>
+(() => {
+  const places = ["千位","百位","十位","個位"];
+  const multipliers = [1000,100,10,1];
+  const states = Array.from({length:4}, () => ({heaven:false, earth:0}));
+
+  const columnsEl = document.getElementById("columns");
+  const currentValueEl = document.getElementById("currentValue");
+  const questionEl = document.getElementById("question");
+  const progressEl = document.getElementById("progress");
+  const scoreEl = document.getElementById("score");
+  const timerEl = document.getElementById("timer");
+  const messageEl = document.getElementById("message");
+  const reportEl = document.getElementById("report");
+
+  let questions = [];
+  let index = 0;
+  let correct = 0;
+  let startedAt = null;
+  let timerHandle = null;
+  let finished = false;
+
+  function buildAbacus(){
+    columnsEl.innerHTML = "";
+    places.forEach((place, colIndex) => {
+      const col = document.createElement("div");
+      col.className = "column";
+      col.innerHTML = `<div class="rod"></div><div class="place">${place}</div>`;
+
+      const heaven = document.createElement("button");
+      heaven.className = "bead heaven";
+      heaven.setAttribute("aria-label", `${place}上珠`);
+      heaven.addEventListener("click", () => {
+        ensureStarted();
+        states[colIndex].heaven = !states[colIndex].heaven;
+        render();
+      });
+      col.appendChild(heaven);
+
+      for(let i=0;i<4;i++){
+        const bead = document.createElement("button");
+        bead.className = "bead earth";
+        bead.dataset.index = String(i);
+        bead.setAttribute("aria-label", `${place}下珠第${i+1}顆`);
+        bead.addEventListener("click", () => {
+          ensureStarted();
+          const activeCount = states[colIndex].earth;
+          states[colIndex].earth = i < activeCount ? i : i + 1;
+          render();
+        });
+        col.appendChild(bead);
+      }
+      columnsEl.appendChild(col);
+    });
+  }
+
+  function render(){
+    [...columnsEl.children].forEach((col, colIndex) => {
+      const state = states[colIndex];
+      col.querySelector(".heaven").classList.toggle("active", state.heaven);
+      col.querySelectorAll(".earth").forEach((bead, i) => {
+        bead.classList.toggle("active", i < state.earth);
+      });
+    });
+    currentValueEl.textContent = getValue().toLocaleString("zh-TW");
+  }
+
+  function getValue(){
+    return states.reduce((sum, s, i) =>
+      sum + ((s.heaven ? 5 : 0) + s.earth) * multipliers[i], 0);
+  }
+
+  function resetAbacus(){
+    states.forEach(s => { s.heaven = false; s.earth = 0; });
+    render();
+  }
+
+  function generateQuestions(){
+    const set = [];
+    while(set.length < 5){
+      const op = Math.random() < 0.65 ? "+" : "−";
+      let a, b, answer;
+      if(op === "+"){
+        a = Math.floor(Math.random()*80)+5;
+        b = Math.floor(Math.random()*40)+1;
+        answer = a+b;
+      } else {
+        a = Math.floor(Math.random()*90)+10;
+        b = Math.floor(Math.random()*a);
+        answer = a-b;
+      }
+      if(answer <= 9999 && !set.some(q => q.a===a && q.b===b && q.op===op)){
+        set.push({a,b,op,answer});
+      }
+    }
+    return set;
+  }
+
+  function showQuestion(){
+    const q = questions[index];
+    questionEl.textContent = `${q.a} ${q.op} ${q.b}`;
+    progressEl.textContent = `${index+1} / ${questions.length}`;
+    messageEl.textContent = "";
+    messageEl.className = "message";
+    resetAbacus();
+  }
+
+  function ensureStarted(){
+    if(startedAt || finished) return;
+    startedAt = Date.now();
+    timerHandle = setInterval(updateTimer, 250);
+  }
+
+  function elapsedSeconds(){
+    return startedAt ? Math.floor((Date.now()-startedAt)/1000) : 0;
+  }
+
+  function formatTime(sec){
+    const m = String(Math.floor(sec/60)).padStart(2,"0");
+    const s = String(sec%60).padStart(2,"0");
+    return `${m}:${s}`;
+  }
+
+  function updateTimer(){
+    timerEl.textContent = formatTime(elapsedSeconds());
+  }
+
+  function submit(){
+    if(finished) return;
+    ensureStarted();
+    const q = questions[index];
+    const value = getValue();
+
+    if(value === q.answer){
+      correct++;
+      scoreEl.textContent = String(correct);
+      messageEl.textContent = "答對了！";
+      messageEl.className = "message ok";
+    } else {
+      messageEl.textContent = `答案是 ${q.answer}，目前算盤為 ${value}。`;
+      messageEl.className = "message bad";
+    }
+
+    setTimeout(() => {
+      index++;
+      if(index >= questions.length){
+        finish();
+      } else {
+        showQuestion();
+      }
+    }, 750);
+  }
+
+  function finish(){
+    finished = true;
+    clearInterval(timerHandle);
+    updateTimer();
+    questionEl.textContent = "練習完成";
+    progressEl.textContent = "5 / 5";
+    document.getElementById("reportCorrect").textContent = `${correct} / 5`;
+    document.getElementById("reportAccuracy").textContent = `${Math.round(correct/5*100)}%`;
+    document.getElementById("reportTime").textContent = formatTime(elapsedSeconds());
+    reportEl.style.display = "block";
+    messageEl.textContent = "已完成本次 AI-Mind Care 算力練習。";
+    messageEl.className = "message ok";
+  }
+
+  function restart(){
+    clearInterval(timerHandle);
+    questions = generateQuestions();
+    index = 0;
+    correct = 0;
+    startedAt = null;
+    timerHandle = null;
+    finished = false;
+    timerEl.textContent = "00:00";
+    scoreEl.textContent = "0";
+    reportEl.style.display = "none";
+    showQuestion();
+  }
+
+  document.getElementById("submitBtn").addEventListener("click", submit);
+  document.getElementById("resetBtn").addEventListener("click", () => {
+    ensureStarted();
+    resetAbacus();
+  });
+  document.getElementById("restartBtn").addEventListener("click", restart);
+
+  buildAbacus();
+  restart();
+})();
+</script>
+</body>
+</html>
