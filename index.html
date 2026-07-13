@@ -1,0 +1,1142 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="AI-Mind Care 算盤算力：互動式模擬算盤認知訓練，支援兩位小數、計時與正確率。">
+  <title>AI-Mind Care 算盤算力 (Abacus Intelligence)</title>
+
+  <style>
+    :root{
+      --bg:#f3f6fa;
+      --card:#ffffff;
+      --text:#172033;
+      --muted:#687386;
+      --line:#d8dee8;
+      --blue:#2563eb;
+      --green:#15803d;
+      --orange:#f97316;
+      --orange-dark:#c2410c;
+      --gold:#e7ad62;
+      --gold-dark:#c78236;
+      --wood:#8a4b22;
+      --wood-light:#bd6a2b;
+      --danger:#b91c1c;
+
+      --abacus-height:clamp(292px,35vw,420px);
+      --bead-w:clamp(34px,6vw,76px);
+      --bead-h:clamp(20px,3vw,38px);
+    }
+
+    *{box-sizing:border-box}
+
+    html,body{
+      margin:0;
+      min-height:100%;
+      overflow-x:hidden;
+    }
+
+    body{
+      background:var(--bg);
+      color:var(--text);
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC",
+                  "PingFang TC","Microsoft JhengHei",Arial,sans-serif;
+      padding:12px;
+    }
+
+    button,select{font:inherit}
+
+    .app{
+      width:min(1500px,100%);
+      margin:0 auto;
+    }
+
+    .top{
+      display:grid;
+      grid-template-columns:minmax(0,1fr) auto;
+      gap:14px;
+      align-items:start;
+      margin-bottom:10px;
+    }
+
+    .brand-title{
+      margin:0;
+      font-size:clamp(25px,3.1vw,48px);
+      line-height:1.12;
+      font-weight:850;
+      letter-spacing:-.02em;
+      white-space:nowrap;
+    }
+
+    .summary{
+      margin:7px 0 0;
+      font-size:clamp(12px,1.25vw,17px);
+      line-height:1.35;
+      color:#344054;
+      font-weight:800;
+      white-space:nowrap;
+    }
+
+    .right-top{
+      display:flex;
+      align-items:stretch;
+      justify-content:flex-end;
+      gap:8px;
+      flex-wrap:nowrap;
+    }
+
+    .home-btn,
+    .stat{
+      min-height:58px;
+      border:1px solid var(--line);
+      background:var(--card);
+      border-radius:15px;
+      box-shadow:0 3px 12px rgba(15,23,42,.05);
+    }
+
+    .home-btn{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:7px;
+      min-width:105px;
+      padding:10px 14px;
+      color:#fff;
+      background:var(--blue);
+      text-decoration:none;
+      font-weight:850;
+      transition:transform .15s ease,filter .15s ease;
+    }
+
+    .home-btn:hover{filter:brightness(.96);transform:translateY(-1px)}
+
+    .stat{
+      min-width:112px;
+      padding:8px 12px;
+      text-align:center;
+    }
+
+    .stat-label{
+      font-size:12px;
+      color:var(--muted);
+      font-weight:750;
+      white-space:nowrap;
+    }
+
+    .stat-value{
+      margin-top:2px;
+      font-size:22px;
+      font-weight:900;
+      white-space:nowrap;
+    }
+
+    .panel{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:18px;
+      box-shadow:0 8px 24px rgba(15,23,42,.055);
+      overflow:hidden;
+    }
+
+    .place-labels{
+      display:grid;
+      grid-template-columns:repeat(7,minmax(0,1fr));
+      gap:3px;
+      padding:10px 25px 7px;
+      border-bottom:1px solid #e8ecf2;
+      text-align:center;
+      background:#fbfcfe;
+    }
+
+    .place-label{
+      min-width:0;
+      color:#14532d;
+      font-weight:900;
+      font-size:clamp(10px,1.12vw,16px);
+      line-height:1.25;
+    }
+
+    .place-label span{
+      display:block;
+      margin-top:2px;
+      color:#344054;
+      font-size:.78em;
+      font-weight:750;
+    }
+
+    .decimal-marker-label{
+      position:relative;
+    }
+
+    .decimal-marker-label::after{
+      content:"•";
+      position:absolute;
+      right:-4px;
+      top:50%;
+      transform:translate(50%,-50%);
+      color:var(--orange);
+      font-size:24px;
+      line-height:1;
+    }
+
+    .abacus-shell{
+      padding:10px;
+      background:#fff;
+    }
+
+    .abacus{
+      position:relative;
+      width:100%;
+      height:var(--abacus-height);
+      border:clamp(8px,1.15vw,17px) solid var(--wood);
+      border-radius:14px;
+      background:
+        linear-gradient(90deg,rgba(255,255,255,.66),rgba(255,255,255,.93)),
+        repeating-linear-gradient(90deg,#fff7eb 0,#fff7eb 40px,#f6ead8 41px,#f6ead8 42px);
+      box-shadow:
+        inset 0 0 0 3px rgba(255,255,255,.22),
+        0 5px 12px rgba(68,36,18,.16);
+      overflow:hidden;
+      user-select:none;
+      touch-action:pan-y;
+    }
+
+    .beam{
+      position:absolute;
+      left:0;
+      right:0;
+      top:35%;
+      height:clamp(10px,1.45vw,20px);
+      transform:translateY(-50%);
+      background:linear-gradient(#a85b28,#6c351b);
+      box-shadow:0 2px 5px rgba(55,28,12,.36);
+      z-index:3;
+      pointer-events:none;
+    }
+
+    .rods{
+      display:grid;
+      grid-template-columns:repeat(7,minmax(0,1fr));
+      height:100%;
+      padding:0 clamp(3px,1.2vw,18px);
+    }
+
+    .rod{
+      position:relative;
+      display:flex;
+      justify-content:center;
+      min-width:0;
+    }
+
+    .rod-line{
+      position:absolute;
+      top:0;
+      bottom:0;
+      width:clamp(3px,.45vw,7px);
+      border-radius:5px;
+      background:linear-gradient(90deg,#9a541f,#dc913f,#8e471c);
+      z-index:1;
+      pointer-events:none;
+    }
+
+    .decimal-rod::after{
+      content:"";
+      position:absolute;
+      right:-1px;
+      top:0;
+      bottom:0;
+      border-right:clamp(2px,.3vw,4px) dotted rgba(249,115,22,.75);
+      z-index:2;
+      pointer-events:none;
+    }
+
+    .bead{
+      position:absolute;
+      left:50%;
+      width:var(--bead-w);
+      height:var(--bead-h);
+      transform:translateX(-50%);
+      border:clamp(1px,.2vw,3px) solid rgba(89,48,17,.23);
+      border-radius:50% / 44%;
+      background:linear-gradient(#f5ce91,var(--gold),var(--gold-dark));
+      box-shadow:
+        0 3px 6px rgba(77,42,18,.24),
+        inset 0 2px 2px rgba(255,255,255,.65);
+      cursor:grab;
+      z-index:4;
+      transition:top .16s ease,background .16s ease,box-shadow .16s ease,transform .1s ease;
+      touch-action:none;
+      -webkit-tap-highlight-color:transparent;
+    }
+
+    .bead:hover{
+      box-shadow:
+        0 4px 10px rgba(77,42,18,.28),
+        0 0 0 4px rgba(37,99,235,.12);
+    }
+
+    .bead:active,.bead.dragging{
+      cursor:grabbing;
+      transform:translateX(-50%) scale(1.05);
+    }
+
+    .bead.active{
+      border-color:#9a3412;
+      background:linear-gradient(#ff9a63,var(--orange),var(--orange-dark));
+      box-shadow:
+        0 4px 10px rgba(194,65,12,.34),
+        0 0 0 3px rgba(249,115,22,.18);
+    }
+
+    .heaven{top:7%}
+    .heaven.active{top:25.5%}
+
+    .earth[data-index="0"]{top:48%}
+    .earth[data-index="1"]{top:60%}
+    .earth[data-index="2"]{top:72%}
+    .earth[data-index="3"]{top:84%}
+
+    .earth.active[data-index="0"]{top:39%}
+    .earth.active[data-index="1"]{top:48%}
+    .earth.active[data-index="2"]{top:57%}
+    .earth.active[data-index="3"]{top:66%}
+
+    .value-question{
+      display:grid;
+      grid-template-columns:minmax(260px,.9fr) minmax(360px,1.25fr);
+      gap:12px;
+      padding:12px;
+      border-top:1px solid var(--line);
+      background:#fbfcfe;
+    }
+
+    .value-card,.question-card{
+      border:1px solid var(--line);
+      border-radius:14px;
+      background:#fff;
+      padding:12px 14px;
+    }
+
+    .section-label{
+      color:#14532d;
+      text-align:center;
+      font-weight:900;
+      font-size:14px;
+    }
+
+    .current-number{
+      margin-top:5px;
+      border:1px solid #86b98c;
+      border-radius:12px;
+      background:#f1faf2;
+      color:#14532d;
+      text-align:center;
+      font-size:clamp(29px,4vw,54px);
+      font-weight:900;
+      letter-spacing:.035em;
+      padding:5px 10px;
+    }
+
+    .question-head{
+      display:flex;
+      justify-content:space-between;
+      gap:8px;
+      align-items:center;
+      color:#344054;
+      font-size:13px;
+      font-weight:850;
+    }
+
+    .question{
+      margin-top:7px;
+      text-align:center;
+      font-size:clamp(24px,3.6vw,46px);
+      font-weight:900;
+      line-height:1.15;
+    }
+
+    .settings{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:8px;
+      margin-top:10px;
+    }
+
+    label.control{
+      display:block;
+      font-size:12px;
+      color:#475467;
+      font-weight:800;
+    }
+
+    select{
+      width:100%;
+      margin-top:4px;
+      border:1px solid var(--line);
+      border-radius:9px;
+      padding:8px;
+      background:#fff;
+      color:var(--text);
+      font-weight:750;
+    }
+
+    .buttons{
+      display:grid;
+      grid-template-columns:repeat(4,minmax(0,1fr));
+      gap:8px;
+      margin-top:10px;
+    }
+
+    .action{
+      border:0;
+      border-radius:10px;
+      min-height:44px;
+      padding:9px 8px;
+      font-weight:900;
+      cursor:pointer;
+      transition:transform .13s ease,filter .13s ease;
+    }
+
+    .action:hover{filter:brightness(.97);transform:translateY(-1px)}
+    .action:disabled{opacity:.46;cursor:not-allowed;transform:none}
+
+    .start{background:#16a34a;color:#fff}
+    .submit{background:var(--blue);color:#fff}
+    .next{background:#f4b13e;color:#4a2d00}
+    .reset{background:#e5e7eb;color:#111827}
+
+    .message{
+      min-height:23px;
+      margin-top:8px;
+      text-align:center;
+      font-weight:850;
+      line-height:1.4;
+    }
+
+    .message.ok{color:var(--green)}
+    .message.bad{color:var(--danger)}
+
+    .footer-info{
+      display:grid;
+      grid-template-columns:repeat(4,minmax(0,1fr));
+      gap:1px;
+      border-top:1px solid var(--line);
+      background:var(--line);
+    }
+
+    .info{
+      padding:9px 10px;
+      background:#f8fbff;
+      color:#344054;
+      font-size:11.5px;
+      line-height:1.35;
+      text-align:center;
+      font-weight:700;
+    }
+
+    .info strong{
+      color:#172033;
+      display:block;
+      margin-bottom:2px;
+    }
+
+    .copyright{
+      padding:8px 12px;
+      text-align:center;
+      font-size:12px;
+      color:var(--muted);
+      background:#fff;
+    }
+
+    @media (max-width:1050px){
+      .top{
+        grid-template-columns:1fr;
+      }
+
+      .right-top{
+        justify-content:flex-start;
+      }
+
+      .brand-title,.summary{
+        white-space:normal;
+      }
+    }
+
+    @media (max-width:760px){
+      body{padding:7px}
+
+      .top{
+        gap:8px;
+        margin-bottom:7px;
+      }
+
+      .brand-title{
+        font-size:clamp(21px,6.15vw,32px);
+      }
+
+      .summary{
+        font-size:11px;
+        line-height:1.3;
+      }
+
+      .right-top{
+        display:grid;
+        grid-template-columns:repeat(4,minmax(0,1fr));
+        width:100%;
+        gap:5px;
+      }
+
+      .home-btn,.stat{
+        min-width:0;
+        min-height:49px;
+        border-radius:10px;
+        padding:6px 3px;
+      }
+
+      .home-btn{
+        font-size:12px;
+      }
+
+      .stat-label{font-size:9px}
+      .stat-value{font-size:16px}
+
+      .place-labels{
+        padding:7px 7px 5px;
+        gap:1px;
+      }
+
+      .place-label{
+        font-size:8.5px;
+      }
+
+      .place-label span{
+        display:none;
+      }
+
+      .decimal-marker-label::after{
+        right:-2px;
+        font-size:16px;
+      }
+
+      .abacus-shell{padding:5px}
+
+      :root{
+        --abacus-height:270px;
+        --bead-w:clamp(31px,10.4vw,50px);
+        --bead-h:clamp(18px,5.5vw,27px);
+      }
+
+      .abacus{
+        border-width:7px;
+        border-radius:10px;
+      }
+
+      .rods{padding:0 1px}
+      .rod-line{width:3px}
+      .beam{height:9px}
+
+      .value-question{
+        grid-template-columns:1fr;
+        gap:7px;
+        padding:7px;
+      }
+
+      .value-card,.question-card{
+        padding:8px;
+        border-radius:10px;
+      }
+
+      .current-number{
+        font-size:30px;
+        padding:3px 7px;
+      }
+
+      .question{
+        font-size:27px;
+      }
+
+      .settings{
+        grid-template-columns:repeat(3,minmax(0,1fr));
+        gap:4px;
+      }
+
+      label.control{
+        font-size:9.5px;
+      }
+
+      select{
+        font-size:10px;
+        padding:6px 3px;
+      }
+
+      .buttons{
+        grid-template-columns:repeat(2,minmax(0,1fr));
+        gap:5px;
+      }
+
+      .action{
+        min-height:39px;
+        font-size:12px;
+      }
+
+      .footer-info{
+        grid-template-columns:repeat(2,minmax(0,1fr));
+      }
+
+      .info{
+        font-size:9.5px;
+        padding:7px 5px;
+      }
+    }
+
+    @media (max-width:390px){
+      :root{
+        --abacus-height:250px;
+        --bead-w:30px;
+        --bead-h:18px;
+      }
+
+      .brand-title{font-size:20px}
+      .summary{font-size:10px}
+      .home-btn{font-size:10px}
+      .stat-value{font-size:14px}
+      .place-label{font-size:7.5px}
+      .current-number{font-size:27px}
+    }
+  </style>
+</head>
+
+<body>
+  <main class="app">
+    <header class="top">
+      <div>
+        <h1 class="brand-title">AI-Mind Care 算盤算力 (Abacus Intelligence)</h1>
+        <p class="summary">
+          模擬算盤認知訓練｜Virtual Abacus Cognitive Training｜計算力・專注力・工作記憶・認知彈性｜1 upper bead + 4 lower beads｜2 decimal places
+        </p>
+      </div>
+
+      <div class="right-top">
+        <a class="home-btn" href="https://www.hyloveclub.com" aria-label="回到首頁 Home">
+          ⌂ Home
+        </a>
+
+        <div class="stat">
+          <div class="stat-label">題目 Question</div>
+          <div class="stat-value" id="progress">0 / 5</div>
+        </div>
+
+        <div class="stat">
+          <div class="stat-label">時間 Time</div>
+          <div class="stat-value" id="timer">00:00</div>
+        </div>
+
+        <div class="stat">
+          <div class="stat-label">答對 Correct</div>
+          <div class="stat-value" id="correct">0</div>
+        </div>
+      </div>
+    </header>
+
+    <section class="panel">
+      <div class="place-labels" aria-hidden="true">
+        <div class="place-label">萬<span>Ten Thousands</span></div>
+        <div class="place-label">千<span>Thousands</span></div>
+        <div class="place-label">百<span>Hundreds</span></div>
+        <div class="place-label">十<span>Tens</span></div>
+        <div class="place-label decimal-marker-label">個<span>Ones</span></div>
+        <div class="place-label">十分位<span>Tenths</span></div>
+        <div class="place-label">百分位<span>Hundredths</span></div>
+      </div>
+
+      <div class="abacus-shell">
+        <div class="abacus" id="abacus" aria-label="七位數、兩位小數模擬算盤">
+          <div class="beam"></div>
+          <div class="rods" id="rods"></div>
+        </div>
+      </div>
+
+      <div class="value-question">
+        <div class="value-card">
+          <div class="section-label">目前算盤數字／Current Number</div>
+          <div class="current-number" id="currentNumber">0.00</div>
+        </div>
+
+        <div class="question-card">
+          <div class="question-head">
+            <span>題目／Question</span>
+            <span id="accuracy">正確率 Accuracy 0%</span>
+          </div>
+
+          <div class="question" id="question">請按「開始」／Press Start</div>
+
+          <div class="settings">
+            <label class="control">
+              難度 Difficulty
+              <select id="difficulty">
+                <option value="easy">簡單 Easy</option>
+                <option value="medium" selected>中等 Medium</option>
+                <option value="advanced">進階 Advanced</option>
+              </select>
+            </label>
+
+            <label class="control">
+              小數位 Decimal Places
+              <select id="decimalPlaces">
+                <option value="0">整數 0</option>
+                <option value="1">一位 1</option>
+                <option value="2" selected>兩位 2</option>
+              </select>
+            </label>
+
+            <label class="control">
+              題數 Questions
+              <select id="questionCount">
+                <option value="5" selected>5 題</option>
+                <option value="10">10 題</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="buttons">
+            <button class="action start" id="startBtn">▶ 開始 Start</button>
+            <button class="action submit" id="submitBtn" disabled>✓ 提交 Submit</button>
+            <button class="action next" id="nextBtn" disabled>▷ 下一題 Next</button>
+            <button class="action reset" id="resetBtn">↻ 歸零 Reset</button>
+          </div>
+
+          <div class="message" id="message" aria-live="polite"></div>
+        </div>
+      </div>
+
+      <div class="footer-info">
+        <div class="info">
+          <strong>靠樑珠子計入數值／Active beads are counted</strong>
+          橘紅色為已靠樑，金色為未靠樑。
+        </div>
+        <div class="info">
+          <strong>上珠為 5，下珠每顆為 1／Upper bead = 5, lower bead = 1</strong>
+          點擊珠子即可快速切換。
+        </div>
+        <div class="info">
+          <strong>點擊或上下拖曳／Tap or drag up and down</strong>
+          珠子會自動吸附至正確位置。
+        </div>
+        <div class="info">
+          <strong>兩位小數／Two decimal places</strong>
+          個位右側依序為十分位與百分位。
+        </div>
+      </div>
+
+      <div class="copyright">
+        AI-Mind Care 算盤算力 (Abacus Intelligence)｜Hylove Business Inc.
+      </div>
+    </section>
+  </main>
+
+  <script>
+    (() => {
+      "use strict";
+
+      const PLACE_CENTS = [1000000, 100000, 10000, 1000, 100, 10, 1];
+      const PLACE_NAMES = ["萬位", "千位", "百位", "十位", "個位", "十分位", "百分位"];
+      const states = PLACE_CENTS.map(() => ({ upper: false, lower: 0 }));
+
+      const rodsEl = document.getElementById("rods");
+      const currentNumberEl = document.getElementById("currentNumber");
+      const questionEl = document.getElementById("question");
+      const progressEl = document.getElementById("progress");
+      const timerEl = document.getElementById("timer");
+      const correctEl = document.getElementById("correct");
+      const accuracyEl = document.getElementById("accuracy");
+      const messageEl = document.getElementById("message");
+
+      const startBtn = document.getElementById("startBtn");
+      const submitBtn = document.getElementById("submitBtn");
+      const nextBtn = document.getElementById("nextBtn");
+      const resetBtn = document.getElementById("resetBtn");
+
+      const difficultyEl = document.getElementById("difficulty");
+      const decimalPlacesEl = document.getElementById("decimalPlaces");
+      const questionCountEl = document.getElementById("questionCount");
+
+      let questions = [];
+      let currentIndex = -1;
+      let correctCount = 0;
+      let answeredCount = 0;
+      let startedAt = null;
+      let timerId = null;
+      let running = false;
+      let currentAnswered = false;
+
+      function formatCents(cents, decimalPlaces = 2) {
+        const safe = Math.max(0, Math.round(cents));
+        if (decimalPlaces === 0) {
+          return Math.floor(safe / 100).toLocaleString("en-US");
+        }
+        if (decimalPlaces === 1) {
+          return (safe / 100).toLocaleString("en-US", {
+            minimumFractionDigits: 1,
+            maximumFractionDigits: 1
+          });
+        }
+        return (safe / 100).toLocaleString("en-US", {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
+        });
+      }
+
+      function getCurrentCents() {
+        return states.reduce((total, state, index) => {
+          const digit = (state.upper ? 5 : 0) + state.lower;
+          return total + digit * PLACE_CENTS[index];
+        }, 0);
+      }
+
+      function renderAbacus() {
+        [...rodsEl.children].forEach((rod, rodIndex) => {
+          const state = states[rodIndex];
+          rod.querySelector(".heaven").classList.toggle("active", state.upper);
+          rod.querySelectorAll(".earth").forEach((bead, beadIndex) => {
+            bead.classList.toggle("active", beadIndex < state.lower);
+          });
+        });
+
+        currentNumberEl.textContent = formatCents(getCurrentCents(), 2);
+      }
+
+      function resetAbacus() {
+        states.forEach(state => {
+          state.upper = false;
+          state.lower = 0;
+        });
+        renderAbacus();
+      }
+
+      function addPointerControls(bead, onTap, onVerticalDrag) {
+        let pointerId = null;
+        let startX = 0;
+        let startY = 0;
+
+        bead.addEventListener("pointerdown", event => {
+          pointerId = event.pointerId;
+          startX = event.clientX;
+          startY = event.clientY;
+          bead.classList.add("dragging");
+          try {
+            bead.setPointerCapture(pointerId);
+          } catch (_) {}
+        });
+
+        bead.addEventListener("pointerup", event => {
+          if (pointerId !== event.pointerId) return;
+
+          const deltaX = event.clientX - startX;
+          const deltaY = event.clientY - startY;
+          bead.classList.remove("dragging");
+
+          try {
+            bead.releasePointerCapture(pointerId);
+          } catch (_) {}
+
+          if (Math.abs(deltaY) >= 14 && Math.abs(deltaY) > Math.abs(deltaX)) {
+            onVerticalDrag(deltaY);
+          } else {
+            onTap();
+          }
+
+          pointerId = null;
+        });
+
+        bead.addEventListener("pointercancel", () => {
+          bead.classList.remove("dragging");
+          pointerId = null;
+        });
+      }
+
+      function buildAbacus() {
+        rodsEl.innerHTML = "";
+
+        PLACE_NAMES.forEach((name, rodIndex) => {
+          const rod = document.createElement("div");
+          rod.className = "rod";
+          if (rodIndex === 4) rod.classList.add("decimal-rod");
+
+          const rodLine = document.createElement("div");
+          rodLine.className = "rod-line";
+          rod.appendChild(rodLine);
+
+          const upper = document.createElement("button");
+          upper.type = "button";
+          upper.className = "bead heaven";
+          upper.setAttribute("aria-label", `${name}上珠`);
+
+          addPointerControls(
+            upper,
+            () => {
+              states[rodIndex].upper = !states[rodIndex].upper;
+              renderAbacus();
+            },
+            deltaY => {
+              states[rodIndex].upper = deltaY > 0;
+              renderAbacus();
+            }
+          );
+
+          rod.appendChild(upper);
+
+          for (let beadIndex = 0; beadIndex < 4; beadIndex += 1) {
+            const lower = document.createElement("button");
+            lower.type = "button";
+            lower.className = "bead earth";
+            lower.dataset.index = String(beadIndex);
+            lower.setAttribute("aria-label", `${name}下珠第${beadIndex + 1}顆`);
+
+            addPointerControls(
+              lower,
+              () => {
+                const activeCount = states[rodIndex].lower;
+                states[rodIndex].lower =
+                  beadIndex < activeCount ? beadIndex : beadIndex + 1;
+                renderAbacus();
+              },
+              deltaY => {
+                if (deltaY < 0) {
+                  states[rodIndex].lower = Math.max(
+                    states[rodIndex].lower,
+                    beadIndex + 1
+                  );
+                } else {
+                  states[rodIndex].lower = Math.min(
+                    states[rodIndex].lower,
+                    beadIndex
+                  );
+                }
+                renderAbacus();
+              }
+            );
+
+            rod.appendChild(lower);
+          }
+
+          rodsEl.appendChild(rod);
+        });
+
+        renderAbacus();
+      }
+
+      function formatElapsed(seconds) {
+        const minutes = String(Math.floor(seconds / 60)).padStart(2, "0");
+        const remaining = String(seconds % 60).padStart(2, "0");
+        return `${minutes}:${remaining}`;
+      }
+
+      function elapsedSeconds() {
+        if (!startedAt) return 0;
+        return Math.floor((Date.now() - startedAt) / 1000);
+      }
+
+      function updateTimer() {
+        timerEl.textContent = formatElapsed(elapsedSeconds());
+      }
+
+      function updateStats() {
+        const total = questions.length || Number(questionCountEl.value);
+        const shown = currentIndex >= 0 ? currentIndex + 1 : 0;
+        progressEl.textContent = `${shown} / ${total}`;
+        correctEl.textContent = String(correctCount);
+        const accuracy = answeredCount > 0
+          ? Math.round((correctCount / answeredCount) * 100)
+          : 0;
+        accuracyEl.textContent = `正確率 Accuracy ${accuracy}%`;
+      }
+
+      function randomInt(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+      }
+
+      function scaleForDecimals(decimalPlaces) {
+        return decimalPlaces === 0 ? 100 : decimalPlaces === 1 ? 10 : 1;
+      }
+
+      function maxOperandCents(difficulty) {
+        if (difficulty === "easy") return 9999;
+        if (difficulty === "advanced") return 4500000;
+        return 999999;
+      }
+
+      function createQuestion() {
+        const difficulty = difficultyEl.value;
+        const decimalPlaces = Number(decimalPlacesEl.value);
+        const step = scaleForDecimals(decimalPlaces);
+        const max = maxOperandCents(difficulty);
+        const operation = Math.random() < 0.62 ? "+" : "−";
+
+        let a = randomInt(1, Math.floor(max / step)) * step;
+        let b = randomInt(1, Math.floor(max / step)) * step;
+
+        if (operation === "−" && b > a) {
+          [a, b] = [b, a];
+        }
+
+        let answer = operation === "+" ? a + b : a - b;
+
+        if (answer > 9999999) {
+          a = Math.floor(a / 2);
+          b = Math.floor(b / 2);
+          a = Math.floor(a / step) * step;
+          b = Math.floor(b / step) * step;
+          if (operation === "−" && b > a) [a, b] = [b, a];
+          answer = operation === "+" ? a + b : a - b;
+        }
+
+        return { a, b, operation, answer, decimalPlaces };
+      }
+
+      function generateQuestions() {
+        const count = Number(questionCountEl.value);
+        const result = [];
+
+        while (result.length < count) {
+          const question = createQuestion();
+          const duplicate = result.some(item =>
+            item.a === question.a &&
+            item.b === question.b &&
+            item.operation === question.operation
+          );
+          if (!duplicate) result.push(question);
+        }
+
+        return result;
+      }
+
+      function showCurrentQuestion() {
+        const item = questions[currentIndex];
+        if (!item) return;
+
+        questionEl.textContent =
+          `${formatCents(item.a, item.decimalPlaces)} ${item.operation} ` +
+          `${formatCents(item.b, item.decimalPlaces)} = ?`;
+
+        messageEl.textContent = "";
+        messageEl.className = "message";
+        currentAnswered = false;
+        submitBtn.disabled = false;
+        nextBtn.disabled = true;
+        resetAbacus();
+        updateStats();
+      }
+
+      function startSession() {
+        clearInterval(timerId);
+
+        questions = generateQuestions();
+        currentIndex = 0;
+        correctCount = 0;
+        answeredCount = 0;
+        startedAt = Date.now();
+        running = true;
+        currentAnswered = false;
+
+        timerEl.textContent = "00:00";
+        timerId = setInterval(updateTimer, 250);
+
+        startBtn.textContent = "↻ 重新開始 Restart";
+        difficultyEl.disabled = true;
+        decimalPlacesEl.disabled = true;
+        questionCountEl.disabled = true;
+
+        showCurrentQuestion();
+      }
+
+      function submitAnswer() {
+        if (!running || currentAnswered) return;
+
+        const item = questions[currentIndex];
+        const current = getCurrentCents();
+        const isCorrect = current === item.answer;
+
+        answeredCount += 1;
+        currentAnswered = true;
+
+        if (isCorrect) {
+          correctCount += 1;
+          messageEl.textContent = "答對了！Correct!";
+          messageEl.className = "message ok";
+        } else {
+          messageEl.textContent =
+            `正確答案：${formatCents(item.answer, item.decimalPlaces)}｜` +
+            `Correct answer: ${formatCents(item.answer, item.decimalPlaces)}`;
+          messageEl.className = "message bad";
+        }
+
+        submitBtn.disabled = true;
+        nextBtn.disabled = false;
+        updateStats();
+
+        if (currentIndex === questions.length - 1) {
+          nextBtn.textContent = "完成 Finish";
+        }
+      }
+
+      function nextQuestion() {
+        if (!running || !currentAnswered) return;
+
+        if (currentIndex >= questions.length - 1) {
+          finishSession();
+          return;
+        }
+
+        currentIndex += 1;
+        nextBtn.textContent = "▷ 下一題 Next";
+        showCurrentQuestion();
+      }
+
+      function finishSession() {
+        running = false;
+        clearInterval(timerId);
+        updateTimer();
+
+        const accuracy = answeredCount > 0
+          ? Math.round((correctCount / answeredCount) * 100)
+          : 0;
+
+        questionEl.textContent =
+          `完成 Completed｜${correctCount}/${questions.length}｜${accuracy}%｜${timerEl.textContent}`;
+
+        messageEl.textContent =
+          "本次算盤算力訓練已完成。Abacus Intelligence session completed.";
+        messageEl.className = "message ok";
+
+        submitBtn.disabled = true;
+        nextBtn.disabled = true;
+        nextBtn.textContent = "▷ 下一題 Next";
+
+        difficultyEl.disabled = false;
+        decimalPlacesEl.disabled = false;
+        questionCountEl.disabled = false;
+      }
+
+      function resetCurrentAbacus() {
+        resetAbacus();
+        if (running) {
+          messageEl.textContent = "";
+          messageEl.className = "message";
+        }
+      }
+
+      startBtn.addEventListener("click", startSession);
+      submitBtn.addEventListener("click", submitAnswer);
+      nextBtn.addEventListener("click", nextQuestion);
+      resetBtn.addEventListener("click", resetCurrentAbacus);
+
+      decimalPlacesEl.addEventListener("change", () => {
+        if (!running) resetAbacus();
+      });
+
+      buildAbacus();
+      updateStats();
+    })();
+  </script>
+</body>
+</html>
