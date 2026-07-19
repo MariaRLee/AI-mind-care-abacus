@@ -12,7 +12,7 @@ AI-Mind Care Abacus Intelligence is an interactive virtual abacus based on the t
 
 ## 🌐 線上體驗｜Live Demo
 
-[請在此加入 GitHub Pages 網址｜Add your GitHub Pages URL here]
+(https://mariarlee.github.io/AI-mind-care-abacus/)
 
 ---
 
