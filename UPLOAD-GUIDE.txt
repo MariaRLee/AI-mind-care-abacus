@@ -1,0 +1,21 @@
+AI-Mind Care 算盤算力 V23.2 — Mobile Fit + IP Protection Edition
+
+這一版主要修正手機版算盤過高、下半部不易看見的問題。
+
+請上傳以下三個檔案到 GitHub Repository：
+1. index.html
+2. README.md
+3. COPYRIGHT-AND-USE.md
+
+GitHub: https://github.com/MariaRLee/AI-mind-care-abacus
+Website: https://mariarlee.github.io/AI-mind-care-abacus/
+
+Commit message 建議：
+Upgrade to V23.2 Mobile Fit + IP Protection Edition
+
+上傳後請用手機重新測試：
+[ ] 下半部算盤可見
+[ ] 可上下滑動頁面
+[ ] 算珠可點擊與拖曳
+[ ] Guide 正常
+[ ] IP announcement 仍存在
