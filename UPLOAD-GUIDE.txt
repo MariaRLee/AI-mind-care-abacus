@@ -1,0 +1,21 @@
+AI-Mind Care 算盤算力 V23.3 Senior Mobile Edition
+
+這一版是給覺得 V23.2.1 在手機上仍偏小的使用者。
+
+請上傳：
+1. index.html
+2. README.md
+3. COPYRIGHT-AND-USE.md
+
+GitHub Repository:
+https://github.com/MariaRLee/AI-mind-care-abacus
+
+Commit message:
+Upgrade to V23.3 Senior Mobile Edition
+
+測試重點：
+[ ] 手機上字與按鈕是否更易讀
+[ ] 算盤是否更大
+[ ] 算盤下半部仍可見
+[ ] 底部灰色空白是否減少
+[ ] Full Terms 連結仍可用
