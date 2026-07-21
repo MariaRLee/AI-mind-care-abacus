@@ -1,0 +1,36 @@
+AI-Mind Care 算盤算力 V23.1 — 直接上傳版
+
+您不需要使用 Builder。
+
+請將以下三個檔案上傳至：
+https://github.com/MariaRLee/AI-mind-care-abacus
+
+1. index.html
+2. README.md
+3. COPYRIGHT-AND-USE.md
+
+步驟：
+1. 開啟 GitHub Repository。
+2. 點 Add file。
+3. 點 Upload files。
+4. 拖入上述三個檔案。
+5. 允許取代原有的 index.html 與 README.md。
+6. Commit message 填：
+   Upgrade to V23.1 IP Protection Edition
+7. 點 Commit changes。
+8. 開啟：
+   https://mariarlee.github.io/AI-mind-care-abacus/
+9. 按 Ctrl + F5 強制重新整理。
+
+測試：
+[ ] Guide 可以開啟及關閉
+[ ] Guide 有第五段分享與使用說明
+[ ] 開始、提交、下一題、歸零正常
+[ ] 加法及減法正常
+[ ] 整數、1 位及 2 位小數正常
+[ ] 5 題及 10 題正常
+[ ] 算珠可點擊及拖曳
+[ ] 完成結果及彩紙動畫正常
+[ ] 手機版文字沒有被截斷
+[ ] 網頁底部有著作權聲明
+[ ] 無訪客計數器、分析或追蹤工具
