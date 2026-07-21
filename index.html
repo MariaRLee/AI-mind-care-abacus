@@ -1,0 +1,1517 @@
+<!doctype html>
+<html lang="zh-Hant" data-version="V23.2" data-ip-protection="enabled">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="format-detection" content="telephone=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#f3f6fa">
+  <meta name="author" content="Hylove Business Inc. / Dr. Maria R. Lee">
+  <meta name="copyright" content="Copyright © 2026 Hylove Business Inc. All Rights Reserved.">
+  <meta name="rights" content="Original-link sharing and direct non-commercial use are welcome. Copying, modification, re-uploading, mirroring, and commercial use require prior written permission.">
+  <meta name="description" content="AI-Mind Care 算盤算力 V23.2：雙語互動式模擬算盤，提供文化教育、認知活動、加減法與小數練習，並優化手機版版面。">
+  <link rel="canonical" href="https://mariarlee.github.io/AI-mind-care-abacus/">
+  <title>AI-Mind Care 算盤算力 (Abacus Intelligence)｜V23.2</title>
+
+  <style>
+    :root{
+      --bg:#f3f6fa;
+      --card:#ffffff;
+      --text:#172033;
+      --muted:#687386;
+      --line:#d8dee8;
+      --blue:#2563eb;
+      --green:#15803d;
+      --orange:#f97316;
+      --orange-dark:#c2410c;
+      --gold:#e7ad62;
+      --gold-dark:#c78236;
+      --wood:#8a4b22;
+      --danger:#b91c1c;
+      --separator:#64748b;
+      --soft-blue:#eff6ff;
+      --abacus-height:clamp(255px,27vw,365px);
+      --bead-w:clamp(28px,5.2vw,66px);
+      --bead-h:clamp(17px,2.55vw,34px);
+    }
+
+    *{box-sizing:border-box}
+    html,body{margin:0;min-height:100%;overflow-x:hidden}
+    body{
+      padding:8px;
+      background:var(--bg);
+      color:var(--text);
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC",
+                  "PingFang TC","Microsoft JhengHei",Arial,sans-serif;
+    }
+    button,select{font:inherit}
+    button,a,select{touch-action:manipulation}
+    button:focus-visible,a:focus-visible,select:focus-visible{
+      outline:3px solid rgba(37,99,235,.28);
+      outline-offset:2px;
+    }
+    [hidden]{display:none!important}
+
+    .app{width:min(1600px,100%);margin:0 auto}
+
+    .top{
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+      margin-bottom:5px;
+    }
+    .title-row{
+      display:flex;
+      align-items:center;
+      gap:7px;
+      min-width:0;
+    }
+    .brand-title{
+      flex:1;
+      min-width:0;
+      margin:0;
+      font-size:clamp(23px,2.35vw,40px);
+      line-height:1.06;
+      font-weight:950;
+      letter-spacing:-.025em;
+    }
+    .title-en{display:inline}
+    .top-actions{display:flex;gap:5px;flex:0 0 auto}
+    .guide-btn,.home-btn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-height:38px;
+      border-radius:10px;
+      padding:5px 11px;
+      box-shadow:0 2px 7px rgba(15,23,42,.04);
+      text-decoration:none;
+      font-size:11px;
+      font-weight:900;
+      white-space:nowrap;
+      cursor:pointer;
+    }
+    .guide-btn{border:1px solid #bfdbfe;color:#1e40af;background:#eff6ff}
+    .home-btn{border:1px solid var(--blue);color:#fff;background:var(--blue)}
+    .summary{
+      margin:0;
+      color:#25334a;
+      font-size:clamp(13px,1.18vw,18px);
+      line-height:1.28;
+      font-weight:850;
+    }
+
+    .panel{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:15px;
+      box-shadow:0 7px 20px rgba(15,23,42,.05);
+      overflow:hidden;
+    }
+
+    .question-strip{
+      padding:5px 7px 6px;
+      background:#fbfcfe;
+      border-bottom:1px solid var(--line);
+    }
+    .single-info-line{
+      display:grid;
+      grid-template-columns:86px 86px 86px minmax(240px,1fr) 150px 150px;
+      gap:4px;
+      align-items:stretch;
+    }
+    .info-cell{
+      min-width:0;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      border:1px solid var(--line);
+      border-radius:8px;
+      background:#fff;
+      padding:3px 5px;
+      text-align:center;
+      overflow:hidden;
+    }
+    .info-cell.question-cell{text-align:left;padding-left:10px}
+    .info-cell.current-cell{border-color:#86b98c;background:#f1faf2}
+    .info-cell.answer-cell{border:2px solid #cbd5e1;background:#f8fafc}
+    .info-cell.answer-cell.correct{border-color:#22c55e;background:#f0fdf4;color:#166534}
+    .info-cell.answer-cell.wrong{border-color:#ef4444;background:#fef2f2;color:#991b1b}
+    .cell-label{
+      color:#64748b;
+      font-size:8.5px;
+      line-height:1.05;
+      font-weight:850;
+      white-space:nowrap;
+    }
+    .cell-value{
+      display:block;
+      width:100%;
+      margin-top:1px;
+      color:#172033;
+      font-size:16px;
+      line-height:1.08;
+      font-weight:950;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:clip;
+      font-variant-numeric:tabular-nums;
+    }
+    .operation-label{
+      color:#9a3412;
+      font-size:clamp(9px,.9vw,13px);
+      font-weight:950;
+    }
+    .question-cell .cell-value{font-size:clamp(18px,2vw,30px)}
+    .current-cell .cell-value{color:#14532d;font-size:clamp(18px,2vw,30px)}
+    .answer-cell .cell-value{font-size:clamp(18px,2vw,30px)}
+
+    .control-box{margin-top:4px}
+    .controls-row{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:5px;
+    }
+    label.control{display:block;color:#475467;font-size:9.5px;font-weight:850}
+    select{
+      width:100%;
+      min-height:30px;
+      margin-top:2px;
+      border:1px solid var(--line);
+      border-radius:7px;
+      padding:5px 4px;
+      background:#fff;
+      color:var(--text);
+      font-size:11px;
+      font-weight:800;
+    }
+    .buttons{
+      display:grid;
+      grid-template-columns:repeat(4,minmax(0,1fr));
+      gap:5px;
+      margin-top:5px;
+    }
+    .action{
+      min-height:34px;
+      border:0;
+      border-radius:8px;
+      padding:5px 4px;
+      font-size:11px;
+      line-height:1.08;
+      font-weight:900;
+      cursor:pointer;
+    }
+    .action:disabled{opacity:.45;cursor:not-allowed}
+    .start{background:#16a34a;color:#fff}
+    .submit{background:var(--blue);color:#fff}
+    .next{background:#f4b13e;color:#4a2d00}
+    .reset{background:#e5e7eb;color:#111827}
+    .message{
+      min-height:17px;
+      margin-top:3px;
+      text-align:center;
+      font-size:10px;
+      line-height:1.25;
+      font-weight:850;
+    }
+    .message.ok{color:var(--green)}
+    .message.bad{color:var(--danger)}
+
+    .place-labels{
+      display:grid;
+      grid-template-columns:repeat(10,minmax(0,1fr));
+      gap:1px;
+      padding:7px 14px 5px;
+      text-align:center;
+      background:#fff;
+      border-bottom:1px solid #e8ecf2;
+    }
+    .place-label{
+      min-width:0;
+      color:#14532d;
+      font-size:clamp(8px,.88vw,13px);
+      line-height:1.14;
+      font-weight:950;
+    }
+    .place-label span{
+      display:block;
+      margin-top:1px;
+      color:#344054;
+      font-size:.72em;
+      font-weight:750;
+    }
+    .ones-label{border-right:2px solid var(--separator)}
+
+    .abacus-shell{padding:6px;background:#fff}
+    .abacus{
+      position:relative;
+      width:100%;
+      height:var(--abacus-height);
+      border:clamp(7px,1vw,14px) solid var(--wood);
+      border-radius:12px;
+      background:
+        linear-gradient(90deg,rgba(255,255,255,.65),rgba(255,255,255,.92)),
+        repeating-linear-gradient(90deg,#fff8ef 0,#fff8ef 34px,#f5eadb 35px,#f5eadb 36px);
+      box-shadow:inset 0 0 0 2px rgba(255,255,255,.2),0 4px 10px rgba(68,36,18,.14);
+      overflow:hidden;
+      user-select:none;
+      touch-action:pan-y;
+    }
+    .beam{
+      position:absolute;
+      left:0;right:0;top:35%;
+      height:clamp(9px,1.1vw,16px);
+      transform:translateY(-50%);
+      background:linear-gradient(#a85b28,#6c351b);
+      box-shadow:0 2px 4px rgba(55,28,12,.32);
+      z-index:3;
+      pointer-events:none;
+    }
+    .rods{
+      display:grid;
+      grid-template-columns:repeat(10,minmax(0,1fr));
+      height:100%;
+      padding:0 clamp(1px,.7vw,9px);
+    }
+    .rod{
+      position:relative;
+      display:flex;
+      justify-content:center;
+      min-width:0;
+    }
+    .rod-line{
+      position:absolute;
+      top:0;bottom:0;
+      width:clamp(2px,.34vw,5px);
+      border-radius:5px;
+      background:linear-gradient(90deg,#9a541f,#dc913f,#8e471c);
+      z-index:1;
+      pointer-events:none;
+    }
+    .ones-rod{border-right:clamp(2px,.22vw,4px) solid var(--separator)}
+    .bead{
+      position:absolute;
+      left:50%;
+      width:var(--bead-w);
+      height:var(--bead-h);
+      transform:translateX(-50%);
+      border:clamp(1px,.15vw,2px) solid rgba(89,48,17,.22);
+      border-radius:50% / 44%;
+      background:linear-gradient(#f5ce91,var(--gold),var(--gold-dark));
+      box-shadow:0 3px 6px rgba(77,42,18,.22),inset 0 2px 2px rgba(255,255,255,.62);
+      cursor:grab;
+      z-index:4;
+      transition:top .15s ease,background .15s ease,box-shadow .15s ease,transform .09s ease;
+      touch-action:none;
+      -webkit-tap-highlight-color:transparent;
+    }
+    .bead:active,.bead.dragging{cursor:grabbing;transform:translateX(-50%) scale(1.05)}
+    .bead.active{
+      border-color:#9a3412;
+      background:linear-gradient(#ff9a63,var(--orange),var(--orange-dark));
+      box-shadow:0 4px 9px rgba(194,65,12,.3),0 0 0 2px rgba(249,115,22,.16);
+    }
+    .heaven{top:7%}
+    .heaven.active{top:25.5%}
+    .earth[data-index="0"]{top:48%}
+    .earth[data-index="1"]{top:60%}
+    .earth[data-index="2"]{top:72%}
+    .earth[data-index="3"]{top:84%}
+    .earth.active[data-index="0"]{top:39%}
+    .earth.active[data-index="1"]{top:48%}
+    .earth.active[data-index="2"]{top:57%}
+    .earth.active[data-index="3"]{top:66%}
+
+    .footer-info{
+      display:grid;
+      grid-template-columns:repeat(4,minmax(0,1fr));
+      gap:1px;
+      border-top:1px solid var(--line);
+      background:var(--line);
+    }
+    .info{
+      padding:6px 7px;
+      background:#f8fbff;
+      color:#344054;
+      font-size:9.5px;
+      line-height:1.25;
+      text-align:center;
+      font-weight:700;
+    }
+    .info strong{display:block;margin-bottom:1px;color:#172033}
+    .copyright{
+      padding:6px 10px;
+      text-align:center;
+      color:#596579;
+      background:#fff;
+      font-size:9px;
+      line-height:1.35;
+    }
+    .copyright a{color:#1d4ed8;font-weight:850}
+
+    .modal{
+      position:fixed;
+      inset:0;
+      z-index:4000;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:16px;
+      background:rgba(15,23,42,.68);
+      backdrop-filter:blur(5px);
+      opacity:0;
+      visibility:hidden;
+      transition:.2s ease;
+    }
+    .modal.show{opacity:1;visibility:visible}
+    .modal-card{
+      width:min(760px,100%);
+      max-height:calc(100dvh - 32px);
+      overflow:auto;
+      border:1px solid rgba(255,255,255,.7);
+      border-radius:22px;
+      background:#fff;
+      box-shadow:0 24px 80px rgba(15,23,42,.32);
+    }
+    .modal-head{
+      position:sticky;
+      top:0;
+      z-index:2;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      padding:15px 18px;
+      border-bottom:1px solid var(--line);
+      background:rgba(255,255,255,.97);
+    }
+    .modal-title{margin:0;font-size:clamp(20px,3vw,29px)}
+    .close-btn{
+      flex:0 0 auto;
+      width:38px;height:38px;
+      border:0;border-radius:10px;
+      background:#eef2f7;
+      color:#172033;
+      font-size:22px;
+      font-weight:900;
+      cursor:pointer;
+    }
+    .modal-body{padding:17px 20px 21px}
+    .guide-section{
+      margin:0 0 16px;
+      padding:13px 14px;
+      border:1px solid var(--line);
+      border-radius:13px;
+      background:#f8fafc;
+    }
+    .guide-section h3{margin:0 0 8px;font-size:17px}
+    .guide-section p{margin:6px 0;line-height:1.55}
+    .guide-section ol,.guide-section ul{margin:7px 0;padding-left:23px}
+    .guide-section li{margin:5px 0;line-height:1.48}
+    .guide-note{
+      padding:9px 10px;
+      border-left:4px solid var(--blue);
+      border-radius:7px;
+      background:var(--soft-blue);
+    }
+    .guide-actions{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      justify-content:center;
+    }
+    .guide-action{
+      min-height:40px;
+      border:0;
+      border-radius:10px;
+      padding:8px 13px;
+      font-weight:900;
+      cursor:pointer;
+    }
+    .copy-action{color:#1e40af;background:#dbeafe}
+    .play-action{color:#fff;background:#16a34a}
+
+    .completion-overlay{
+      position:fixed;
+      inset:0;
+      z-index:3500;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:18px;
+      background:rgba(15,23,42,.68);
+      backdrop-filter:blur(5px);
+      opacity:0;
+      visibility:hidden;
+      transition:opacity .22s ease,visibility .22s ease;
+    }
+    .completion-overlay.show{opacity:1;visibility:visible}
+    .celebration-canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+    .completion-card{
+      position:relative;
+      z-index:2;
+      width:min(520px,100%);
+      max-height:calc(100dvh - 36px);
+      overflow:auto;
+      border:1px solid rgba(255,255,255,.7);
+      border-radius:24px;
+      background:rgba(255,255,255,.98);
+      box-shadow:0 24px 80px rgba(15,23,42,.32);
+      padding:22px;
+      text-align:center;
+    }
+    .result-icon{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      width:76px;height:76px;
+      margin:0 auto 8px;
+      border-radius:50%;
+      background:linear-gradient(145deg,#fff7d6,#ffe18a);
+      box-shadow:0 10px 28px rgba(245,158,11,.24);
+      font-size:42px;
+    }
+    .result-title{margin:0;font-size:clamp(24px,4vw,36px);line-height:1.1;font-weight:950}
+    .result-subtitle{margin:5px 0 0;color:#667085;font-size:13px;font-weight:800}
+    .result-accuracy{
+      margin:14px 0 3px;
+      color:#14532d;
+      font-size:clamp(54px,10vw,82px);
+      line-height:.95;
+      font-weight:950;
+      letter-spacing:-.05em;
+    }
+    .result-accuracy-label{color:#475467;font-size:12px;font-weight:850}
+    .result-metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:16px}
+    .result-metric{border:1px solid #d8dee9;border-radius:13px;background:#f8fafc;padding:10px 8px}
+    .result-metric-label{color:#667085;font-size:10px;font-weight:850}
+    .result-metric-value{margin-top:3px;font-size:22px;font-weight:950}
+    .result-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:18px}
+    .result-action{
+      min-height:48px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      border:0;
+      border-radius:12px;
+      padding:8px;
+      text-decoration:none;
+      cursor:pointer;
+      font:inherit;
+      font-size:12px;
+      line-height:1.15;
+      font-weight:900;
+    }
+    .result-action.replay{color:#fff;background:#16a34a}
+    .result-action.level{color:#fff;background:#2563eb}
+    .result-action.home{color:#344054;background:#eef2f7;border:1px solid #d0d5dd}
+    .result-note{margin:12px 0 0;color:#667085;font-size:10px;line-height:1.4;font-weight:750}
+
+    @media(max-width:1100px){
+      .single-info-line{
+        grid-template-columns:74px 74px 74px minmax(200px,1fr) 125px 125px;
+      }
+    }
+
+    @media(max-width:720px){
+      body{padding:2px}
+      .top{gap:2px;margin-bottom:2px}
+      .title-row{align-items:flex-start;gap:4px}
+      .brand-title{
+        font-size:clamp(16px,4.2vw,21px);
+        line-height:1.02;
+      }
+      .title-en{display:block;margin-top:1px;font-size:.8em;white-space:nowrap}
+      .top-actions{gap:3px}
+      .guide-btn,.home-btn{
+        min-height:30px;
+        padding:3px 6px;
+        border-radius:8px;
+        font-size:8px;
+      }
+      .summary{font-size:9.3px;line-height:1.18}
+      .question-strip{padding:3px}
+      .single-info-line{
+        grid-template-columns:repeat(12,minmax(0,1fr));
+        gap:3px;
+      }
+      .single-info-line>.info-cell:nth-child(1){grid-column:span 4}
+      .single-info-line>.info-cell:nth-child(2){grid-column:span 4}
+      .single-info-line>.info-cell:nth-child(3){grid-column:span 4}
+      .single-info-line>.question-cell{grid-column:span 6}
+      .single-info-line>.current-cell{grid-column:span 3}
+      .single-info-line>.answer-cell{grid-column:span 3}
+      .info-cell{min-height:31px;padding:3px 4px;border-radius:7px}
+      .info-cell.question-cell{min-height:43px;padding-left:6px}
+      .cell-label{font-size:6.9px}
+      .cell-value{font-size:11px}
+      .operation-label{font-size:7.2px}
+      .question-cell .cell-value{font-size:17px}
+      .current-cell .cell-value,.answer-cell .cell-value{font-size:17px}
+      .control-box{margin-top:4px}
+      .controls-row{gap:3px}
+      label.control{font-size:7.4px}
+      select{min-height:27px;margin-top:2px;padding:3px 4px;font-size:9px}
+      .buttons{gap:3px;margin-top:4px}
+      .action{min-height:28px;padding:3px 2px;font-size:7.9px}
+      .message{min-height:11px;font-size:7.1px}
+      .place-labels{padding:3px 3px 2px}
+      .place-label{font-size:6.2px}
+      .place-label span{display:none}
+      :root{
+        --abacus-height:clamp(175px,27svh,220px);
+        --bead-w:clamp(18px,7vw,30px);
+        --bead-h:clamp(12px,4vw,18px);
+      }
+      .abacus-shell{padding:3px}
+      .abacus{border-width:6px;border-radius:9px}
+      .beam{height:7px}
+      .rod-line{width:2px}
+      .footer-info{grid-template-columns:repeat(2,minmax(0,1fr))}
+      .info{font-size:6.6px;padding:3px}
+      .copyright{font-size:6.4px;padding:3px 5px}
+      .modal{padding:8px}
+      .modal-card{max-height:calc(100dvh - 16px);border-radius:16px}
+      .modal-head{padding:11px 12px}
+      .modal-title{font-size:19px}
+      .modal-body{padding:12px}
+      .guide-section{padding:10px;font-size:12px}
+      .guide-section h3{font-size:15px}
+      .completion-overlay{padding:10px}
+      .completion-card{width:min(430px,100%);padding:17px 14px;border-radius:19px}
+      .result-icon{width:60px;height:60px;margin-bottom:6px;font-size:34px}
+      .result-title{font-size:24px}
+      .result-accuracy{margin-top:10px;font-size:58px}
+      .result-actions{gap:6px;margin-top:14px}
+      .result-action{min-height:44px;padding:6px 4px;font-size:10px}
+    }
+
+    @media(max-width:390px){
+      .brand-title{font-size:15.2px}
+      .title-en{font-size:.77em}
+      .guide-btn,.home-btn{font-size:7.3px}
+      .summary{font-size:8.6px}
+      .single-info-line{gap:2px}
+      .cell-label{font-size:6.4px}
+      .question-cell .cell-value{font-size:15px}
+      .current-cell .cell-value,.answer-cell .cell-value{font-size:14px}
+      .action{font-size:7.2px}
+      .abacus{min-height:170px}
+      .result-actions{grid-template-columns:1fr 1fr}
+      .result-action.home{grid-column:1/-1}
+    }
+
+    @media(max-width:720px) and (max-height:760px){
+      :root{--abacus-height:clamp(155px,24svh,190px)}
+      .summary{font-size:8.1px;line-height:1.12}
+      .info-cell{min-height:28px;padding:2px 4px}
+      .info-cell.question-cell{min-height:38px}
+      .question-cell .cell-value{font-size:14px}
+      .current-cell .cell-value,.answer-cell .cell-value{font-size:13px}
+      select{min-height:25px;font-size:8.5px}
+      .action{min-height:26px;font-size:7.2px}
+      .message{font-size:6.6px;min-height:9px}
+      .footer-info{display:none}
+      .copyright{font-size:6px;padding:2px 4px}
+    }
+
+    @media(prefers-reduced-motion:reduce){
+      *,*::before,*::after{scroll-behavior:auto!important;transition:none!important}
+      .celebration-canvas{display:none}
+    }
+  </style>
+</head>
+
+<body>
+  <main class="app">
+    <header class="top">
+      <div class="title-row">
+        <h1 class="brand-title">
+          AI-Mind Care 算盤算力
+          <span class="title-en">(Abacus Intelligence)</span>
+        </h1>
+
+        <div class="top-actions">
+          <button type="button" class="guide-btn" id="guideBtn">故事與玩法<br>Guide</button>
+          <a class="home-btn" href="https://www.hyloveclub.com" aria-label="回到首頁 Home">⌂ Home</a>
+        </div>
+      </div>
+
+      <p class="summary">
+        模擬算盤認知訓練｜Virtual Abacus Cognitive Training｜預設：簡單整數 Easy integers｜可選 2 decimal places
+      </p>
+    </header>
+
+    <section class="panel">
+      <div class="question-strip">
+        <div class="single-info-line">
+          <div class="info-cell">
+            <div class="cell-label">題目 Question</div>
+            <div class="cell-value" id="progress">1 / 5</div>
+          </div>
+
+          <div class="info-cell">
+            <div class="cell-label">時間 Time</div>
+            <div class="cell-value" id="timer">00:00</div>
+          </div>
+
+          <div class="info-cell">
+            <div class="cell-label">答對 Correct</div>
+            <div class="cell-value" id="score">0</div>
+          </div>
+
+          <div class="info-cell question-cell">
+            <div class="cell-label">
+              算式 Question　
+              <span class="operation-label" id="operationLabel">減法 Subtraction</span>
+            </div>
+            <div class="cell-value" id="question">38 − 17 = ?</div>
+          </div>
+
+          <div class="info-cell current-cell">
+            <div class="cell-label">目前數字／Current</div>
+            <div class="cell-value" id="currentNumber">38</div>
+          </div>
+
+          <div class="info-cell answer-cell" id="answerCell">
+            <div class="cell-label">正確答案／Answer</div>
+            <div class="cell-value" id="answerValue">—</div>
+          </div>
+        </div>
+
+        <div class="control-box">
+          <div class="controls-row">
+            <label class="control">
+              難度 Difficulty
+              <select id="difficulty">
+                <option value="easy">簡單 Easy</option>
+                <option value="medium">中等 Medium</option>
+                <option value="advanced">進階 Advanced</option>
+              </select>
+            </label>
+
+            <label class="control">
+              小數位 Decimals
+              <select id="decimals">
+                <option value="0">整數 0</option>
+                <option value="1">一位 1</option>
+                <option value="2">兩位 2</option>
+              </select>
+            </label>
+
+            <label class="control">
+              題數 Questions
+              <select id="questionCount">
+                <option value="5">5 題</option>
+                <option value="10">10 題</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="buttons">
+            <button type="button" class="action start" id="startBtn">▶ 開始 Start</button>
+            <button type="button" class="action submit" id="submitBtn" disabled>✓ 提交 Submit</button>
+            <button type="button" class="action next" id="nextBtn" disabled>▷ 下一題 Next</button>
+            <button type="button" class="action reset" id="resetBtn">↻ 歸零 Reset 0</button>
+          </div>
+
+          <div class="message" id="message" aria-live="polite">
+            預設為簡單整數模式，第一題先顯示 38。Default: Easy integers; the first number is preloaded as 38.
+          </div>
+        </div>
+      </div>
+
+      <div class="place-labels" aria-hidden="true">
+        <div class="place-label">千萬<span>Ten Millions</span></div>
+        <div class="place-label">百萬<span>Millions</span></div>
+        <div class="place-label">十萬<span>Hundred Thousands</span></div>
+        <div class="place-label">萬<span>Ten Thousands</span></div>
+        <div class="place-label">千<span>Thousands</span></div>
+        <div class="place-label">百<span>Hundreds</span></div>
+        <div class="place-label">十<span>Tens</span></div>
+        <div class="place-label ones-label">個<span>Ones</span></div>
+        <div class="place-label">十分位<span>Tenths</span></div>
+        <div class="place-label">百分位<span>Hundredths</span></div>
+      </div>
+
+      <div class="abacus-shell">
+        <div class="abacus" id="abacus" aria-label="十位模擬算盤，可點擊或上下拖曳算珠">
+          <div class="beam"></div>
+          <div class="rods" id="rods"></div>
+        </div>
+      </div>
+
+      <div class="footer-info">
+        <div class="info">
+          <strong>預設簡單整數模式</strong>
+          Default: Easy integer mode.
+        </div>
+        <div class="info">
+          <strong>仍可選擇小數模式</strong>
+          1 or 2 decimal places remain available.
+        </div>
+        <div class="info">
+          <strong>點擊或上下拖曳</strong>
+          Tap or drag beads up and down.
+        </div>
+        <div class="info">
+          <strong>橘色珠子計入數值</strong>
+          Orange beads are counted.
+        </div>
+      </div>
+
+      <div class="copyright">
+        © 2026 Hylove Business Inc. / AI-Mind Care. All Rights Reserved.
+        歡迎分享原始連結；未經書面授權，不得複製、修改、重新上傳或作商業用途。<br>
+        Original-link sharing is welcome. No copying, modification, re-uploading, or commercial use without written permission.
+        <a href="COPYRIGHT-AND-USE.md" target="_blank" rel="noopener">完整條款｜Full Terms</a>
+      </div>
+    </section>
+  </main>
+
+  <div class="modal" id="guideModal" role="dialog" aria-modal="true" aria-labelledby="guideTitle">
+    <div class="modal-card">
+      <div class="modal-head">
+        <h2 class="modal-title" id="guideTitle">算盤故事與玩法｜Abacus History & Play Guide</h2>
+        <button type="button" class="close-btn" id="guideClose" aria-label="關閉 Close">×</button>
+      </div>
+
+      <div class="modal-body">
+        <section class="guide-section">
+          <h3>一、算盤小故事｜A Short History</h3>
+          <p>
+            算盤是流傳已久的東方計算工具，透過位值、算珠與手指操作，
+            將抽象數字轉化為看得見、可以動手操作的計算過程。
+          </p>
+          <p>
+            The abacus is a traditional calculating tool that turns abstract numbers into
+            visible, hands-on bead movements based on place value.
+          </p>
+        </section>
+
+        <section class="guide-section">
+          <h3>二、如何看算盤｜How to Read the Abacus</h3>
+          <ul>
+            <li><strong>上珠＝5｜Upper bead = 5</strong></li>
+            <li><strong>每顆下珠＝1｜Each lower bead = 1</strong></li>
+            <li><strong>靠近橫樑才計數｜Count beads near the beam</strong></li>
+            <li><strong>8＝上珠 5＋下珠 3｜8 = 5 + 3</strong></li>
+          </ul>
+          <p>
+            每一直行代表一個位值；由右向左依序為個、十、百、千……
+            小數點右方則為十分位與百分位。
+          </p>
+          <p>
+            Each vertical rod represents one place value. Moving left gives ones, tens,
+            hundreds, thousands, and more; the two rods on the right represent tenths and hundredths.
+          </p>
+        </section>
+
+        <section class="guide-section">
+          <h3>三、如何玩｜How to Play</h3>
+          <ol>
+            <li>選擇難度、小數位與題數。Select difficulty, decimals, and number of questions.</li>
+            <li>按下「開始 Start」。Press Start.</li>
+            <li>第一個數字已預先放在算盤上。The first number is preloaded.</li>
+            <li>依照加法或減法撥動算珠。Move the beads to add or subtract.</li>
+            <li>按「提交 Submit」查看結果。Press Submit to check your answer.</li>
+          </ol>
+          <p class="guide-note">
+            不需要背誦傳統算盤口訣，也可以依照數字慢慢撥珠練習。<br>
+            No traditional abacus formula is required—move the beads at your own pace.
+          </p>
+        </section>
+
+        <section class="guide-section">
+          <h3>四、手機開啟提示｜Mobile Browser Note</h3>
+          <p>
+            網頁成功開啟後可直接遊玩，不會自動顯示提示框。
+            若 LINE 內建瀏覽器無法連線或顯示不完整，請複製網址後改用 Safari 或 Google Chrome 開啟。
+          </p>
+          <p>
+            Once the page opens, you can play immediately. If LINE's built-in browser cannot connect
+            or display the page correctly, copy the URL and open it in Safari or Google Chrome.
+          </p>
+        </section>
+
+        <section class="guide-section">
+          <h3>五、分享與使用說明｜Sharing and Permitted Use</h3>
+          <p><strong>歡迎｜Welcome</strong></p>
+          <ul>
+            <li>分享本遊戲的原始網站連結。Share the original game link.</li>
+            <li>
+              在非商業的學校、社區、教會、樂齡、文化或公益活動中，
+              直接開啟原始網站使用。Directly use the original website in non-commercial
+              educational, community, religious, senior, cultural, or public-interest activities.
+            </li>
+            <li>
+              為介紹、教學、研究或評論，合理引用少量文字或有限畫面，
+              並註明「AI-Mind Care 算盤算力／Hylove Business Inc.」及原始來源。
+              Use limited quotations or screenshots with proper credit and the original source.
+            </li>
+          </ul>
+
+          <p><strong>須事先取得書面授權｜Prior Written Permission Required</strong></p>
+          <ul>
+            <li>
+              複製、重新散布或重新上傳完整遊戲、程式、圖片或內容。
+              Copying, redistributing, or re-uploading the complete game, code, images, or content.
+            </li>
+            <li>
+              修改、翻譯、改作、建立鏡像網站，或包裝成其他網站、App、系統或產品。
+              Modifying, translating, adapting, mirroring, or repackaging the work.
+            </li>
+            <li>
+              移除權利標示，或用於收費課程、企業服務、商品、廣告、贊助及其他商業用途。
+              Removing rights notices or using the work commercially.
+            </li>
+          </ul>
+
+          <p class="guide-note">
+            「非商業使用」不代表可以任意複製或修改完整作品；最安全且最受歡迎的方式是分享原始連結。<br>
+            “Non-commercial” does not mean the complete work may be freely copied or modified;
+            sharing the original link is preferred.
+          </p>
+        </section>
+
+        <div class="guide-actions">
+          <button type="button" class="guide-action copy-action" id="copyUrlBtn">複製網址 Copy URL</button>
+          <button type="button" class="guide-action play-action" id="startPlayingBtn">開始練習 Start Playing</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="completion-overlay" id="completionOverlay" role="dialog" aria-modal="true" aria-labelledby="resultTitle">
+    <canvas class="celebration-canvas" id="celebrationCanvas"></canvas>
+
+    <div class="completion-card">
+      <div class="result-icon" id="resultIcon" aria-hidden="true">🏆</div>
+      <h2 class="result-title" id="resultTitle">挑戰完成！Challenge Completed</h2>
+      <p class="result-subtitle" id="resultSubtitle">Excellent!</p>
+
+      <div class="result-accuracy" id="resultAccuracy">100%</div>
+      <div class="result-accuracy-label">正確率／Accuracy</div>
+
+      <div class="result-metrics">
+        <div class="result-metric">
+          <div class="result-metric-label">答對／Correct</div>
+          <div class="result-metric-value" id="resultCorrect">5 / 5</div>
+        </div>
+        <div class="result-metric">
+          <div class="result-metric-label">完成時間／Time</div>
+          <div class="result-metric-value" id="resultTime">00:00</div>
+        </div>
+      </div>
+
+      <div class="result-actions">
+        <button type="button" class="result-action replay" id="playAgainBtn">↻ 再玩一次<br>Play Again</button>
+        <button type="button" class="result-action level" id="nextLevelBtn">★ 挑戰下一難度<br>Next Level</button>
+        <a class="result-action home" href="https://www.hyloveclub.com">⌂ 回首頁<br>Home</a>
+      </div>
+
+      <p class="result-note">
+        煙火與視覺效果皆由本頁產生，不使用外部追蹤或分析工具。<br>
+        Fireworks and visual effects are generated locally without external tracking or analytics.
+      </p>
+    </div>
+  </div>
+
+  <script>
+  (() => {
+    "use strict";
+
+    const $ = id => document.getElementById(id);
+
+    const progressEl = $("progress");
+    const timerEl = $("timer");
+    const scoreEl = $("score");
+    const operationLabelEl = $("operationLabel");
+    const questionEl = $("question");
+    const currentNumberEl = $("currentNumber");
+    const answerCellEl = $("answerCell");
+    const answerValueEl = $("answerValue");
+    const difficultyEl = $("difficulty");
+    const decimalsEl = $("decimals");
+    const questionCountEl = $("questionCount");
+    const startBtn = $("startBtn");
+    const submitBtn = $("submitBtn");
+    const nextBtn = $("nextBtn");
+    const resetBtn = $("resetBtn");
+    const messageEl = $("message");
+    const rodsEl = $("rods");
+
+    const guideModal = $("guideModal");
+    const completionOverlay = $("completionOverlay");
+
+    const PLACE_CENTS = [
+      1000000000, 100000000, 10000000, 1000000, 100000,
+      10000, 1000, 100, 10, 1
+    ];
+
+    const DEMO_QUESTION = {
+      a: 3800,
+      b: 1700,
+      answer: 2100,
+      op: "-",
+      decimalPlaces: 0
+    };
+
+    let digits = Array(10).fill(0);
+    let questions = [DEMO_QUESTION];
+    let currentIndex = 0;
+    let correctCount = 0;
+    let answeredCount = 0;
+    let currentAnswered = false;
+    let running = false;
+    let startedAt = null;
+    let timerId = null;
+    let celebrationFrame = null;
+    let lastFocused = null;
+
+    function clamp(value, min, max){
+      return Math.min(max, Math.max(min, value));
+    }
+
+    function formatTime(totalSeconds){
+      const seconds = Math.max(0, Math.floor(totalSeconds));
+      const mm = String(Math.floor(seconds / 60)).padStart(2, "0");
+      const ss = String(seconds % 60).padStart(2, "0");
+      return `${mm}:${ss}`;
+    }
+
+    function elapsedSeconds(){
+      return startedAt ? (Date.now() - startedAt) / 1000 : 0;
+    }
+
+    function updateTimer(){
+      timerEl.textContent = formatTime(elapsedSeconds());
+    }
+
+    function formatCents(cents, decimalPlaces){
+      const sign = cents < 0 ? "-" : "";
+      const abs = Math.abs(Math.round(cents));
+      const whole = Math.floor(abs / 100);
+      const fraction = String(abs % 100).padStart(2, "0");
+
+      if(decimalPlaces === 0) return sign + String(whole);
+      if(decimalPlaces === 1) return sign + whole + "." + fraction[0];
+      return sign + whole + "." + fraction;
+    }
+
+    function fitText(el, maxPx, minPx){
+      el.style.fontSize = "";
+      let size = maxPx;
+      el.style.fontSize = size + "px";
+      const available = Math.max(20, el.clientWidth - 2);
+      while(el.scrollWidth > available && size > minPx){
+        size -= 1;
+        el.style.fontSize = size + "px";
+      }
+    }
+
+    function fitImportantNumbers(){
+      const mobile = window.innerWidth <= 720;
+      fitText(questionEl, mobile ? 20 : 30, mobile ? 11 : 16);
+      fitText(currentNumberEl, mobile ? 20 : 30, mobile ? 11 : 16);
+      fitText(answerValueEl, mobile ? 20 : 30, mobile ? 11 : 16);
+    }
+
+    function getCurrentCents(){
+      return digits.reduce((sum, digit, index) => sum + digit * PLACE_CENTS[index], 0);
+    }
+
+    function updateCurrentDisplay(){
+      const item = questions[currentIndex] || DEMO_QUESTION;
+      currentNumberEl.textContent = formatCents(getCurrentCents(), item.decimalPlaces);
+      fitImportantNumbers();
+    }
+
+    function setDigit(rodIndex, digit){
+      digits[rodIndex] = clamp(Math.trunc(digit), 0, 9);
+      renderRodState(rodIndex);
+      updateCurrentDisplay();
+    }
+
+    function setAbacusFromCents(cents){
+      let remaining = Math.max(0, Math.round(cents));
+      digits = PLACE_CENTS.map(place => {
+        const digit = Math.floor(remaining / place);
+        remaining %= place;
+        return clamp(digit, 0, 9);
+      });
+      for(let i = 0; i < digits.length; i++) renderRodState(i);
+      updateCurrentDisplay();
+    }
+
+    function renderRodState(rodIndex){
+      const rod = rodsEl.children[rodIndex];
+      if(!rod) return;
+      const digit = digits[rodIndex];
+      const heaven = rod.querySelector(".heaven");
+      const earth = [...rod.querySelectorAll(".earth")];
+
+      heaven.classList.toggle("active", digit >= 5);
+      heaven.setAttribute("aria-pressed", digit >= 5 ? "true" : "false");
+
+      const earthCount = digit % 5;
+      earth.forEach((bead, index) => {
+        const active = index < earthCount;
+        bead.classList.toggle("active", active);
+        bead.setAttribute("aria-pressed", active ? "true" : "false");
+      });
+    }
+
+    function attachDrag(bead, rodIndex, kind, earthIndex){
+      let startY = 0;
+      let pointerId = null;
+
+      bead.addEventListener("pointerdown", event => {
+        pointerId = event.pointerId;
+        startY = event.clientY;
+        bead.classList.add("dragging");
+        try{ bead.setPointerCapture(pointerId); }catch(_){}
+      });
+
+      bead.addEventListener("pointerup", event => {
+        if(pointerId === null) return;
+        const delta = event.clientY - startY;
+        bead.classList.remove("dragging");
+        try{ bead.releasePointerCapture(pointerId); }catch(_){}
+
+        if(Math.abs(delta) < 7){
+          if(kind === "heaven"){
+            setDigit(rodIndex, digits[rodIndex] >= 5 ? digits[rodIndex] - 5 : digits[rodIndex] + 5);
+          }else{
+            const lower = digits[rodIndex] % 5;
+            const upper = digits[rodIndex] >= 5 ? 5 : 0;
+            const nextLower = lower > earthIndex ? earthIndex : earthIndex + 1;
+            setDigit(rodIndex, upper + nextLower);
+          }
+        }else if(kind === "heaven"){
+          const upper = delta > 0 ? 5 : 0;
+          setDigit(rodIndex, upper + (digits[rodIndex] % 5));
+        }else{
+          const upper = digits[rodIndex] >= 5 ? 5 : 0;
+          const nextLower = delta < 0 ? earthIndex + 1 : earthIndex;
+          setDigit(rodIndex, upper + nextLower);
+        }
+
+        pointerId = null;
+      });
+
+      bead.addEventListener("pointercancel", () => {
+        bead.classList.remove("dragging");
+        pointerId = null;
+      });
+
+      bead.addEventListener("keydown", event => {
+        if(event.key === "Enter" || event.key === " "){
+          event.preventDefault();
+          bead.click();
+        }
+      });
+    }
+
+    function buildAbacus(){
+      rodsEl.replaceChildren();
+
+      for(let rodIndex = 0; rodIndex < 10; rodIndex++){
+        const rod = document.createElement("div");
+        rod.className = "rod" + (rodIndex === 7 ? " ones-rod" : "");
+        rod.dataset.rod = String(rodIndex);
+
+        const line = document.createElement("div");
+        line.className = "rod-line";
+        rod.appendChild(line);
+
+        const heaven = document.createElement("button");
+        heaven.type = "button";
+        heaven.className = "bead heaven";
+        heaven.setAttribute("aria-label", `第 ${rodIndex + 1} 位上珠，數值 5`);
+        heaven.setAttribute("aria-pressed", "false");
+        heaven.addEventListener("click", event => {
+          if(event.detail === 0){
+            setDigit(rodIndex, digits[rodIndex] >= 5 ? digits[rodIndex] - 5 : digits[rodIndex] + 5);
+          }
+        });
+        attachDrag(heaven, rodIndex, "heaven", -1);
+        rod.appendChild(heaven);
+
+        for(let earthIndex = 0; earthIndex < 4; earthIndex++){
+          const earth = document.createElement("button");
+          earth.type = "button";
+          earth.className = "bead earth";
+          earth.dataset.index = String(earthIndex);
+          earth.setAttribute("aria-label", `第 ${rodIndex + 1} 位下珠 ${earthIndex + 1}`);
+          earth.setAttribute("aria-pressed", "false");
+          earth.addEventListener("click", event => {
+            if(event.detail === 0){
+              const lower = digits[rodIndex] % 5;
+              const upper = digits[rodIndex] >= 5 ? 5 : 0;
+              const nextLower = lower > earthIndex ? earthIndex : earthIndex + 1;
+              setDigit(rodIndex, upper + nextLower);
+            }
+          });
+          attachDrag(earth, rodIndex, "earth", earthIndex);
+          rod.appendChild(earth);
+        }
+
+        rodsEl.appendChild(rod);
+      }
+
+      setAbacusFromCents(DEMO_QUESTION.a);
+    }
+
+    function randomInt(min, max){
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function difficultyMaximum(level){
+      if(level === "medium") return 9999;
+      if(level === "advanced") return 999999;
+      return 99;
+    }
+
+    function generateQuestion(){
+      const decimalPlaces = Number(decimalsEl.value);
+      const maxWhole = difficultyMaximum(difficultyEl.value);
+      const stepsPerWhole = 10 ** decimalPlaces;
+      const centStep = 10 ** (2 - decimalPlaces);
+      const maxSteps = Math.max(4, maxWhole * stepsPerWhole);
+
+      const op = Math.random() < 0.5 ? "+" : "-";
+      let aSteps;
+      let bSteps;
+
+      if(op === "+"){
+        aSteps = randomInt(1, Math.max(2, Math.floor(maxSteps * 0.65)));
+        bSteps = randomInt(1, Math.max(2, Math.min(maxSteps - aSteps, Math.floor(maxSteps * 0.45))));
+      }else{
+        aSteps = randomInt(2, maxSteps);
+        bSteps = randomInt(1, aSteps - 1);
+      }
+
+      const a = aSteps * centStep;
+      const b = bSteps * centStep;
+      return {
+        a,
+        b,
+        answer: op === "+" ? a + b : a - b,
+        op,
+        decimalPlaces
+      };
+    }
+
+    function generateQuestions(){
+      const total = Number(questionCountEl.value);
+      return Array.from({length: total}, generateQuestion);
+    }
+
+    function operationText(item){
+      return item.op === "+" ? "加法 Addition" : "減法 Subtraction";
+    }
+
+    function operationSymbol(item){
+      return item.op === "+" ? "+" : "−";
+    }
+
+    function resetAnswerDisplay(){
+      answerCellEl.className = "info-cell answer-cell";
+      answerValueEl.textContent = "—";
+    }
+
+    function updateStats(){
+      const total = questions.length || Number(questionCountEl.value);
+      progressEl.textContent = `${Math.min(currentIndex + 1, total)} / ${total}`;
+      scoreEl.textContent = String(correctCount);
+    }
+
+    function showCurrentQuestion(){
+      const item = questions[currentIndex];
+      currentAnswered = false;
+      resetAnswerDisplay();
+
+      operationLabelEl.textContent = operationText(item);
+      questionEl.textContent =
+        `${formatCents(item.a, item.decimalPlaces)} ${operationSymbol(item)} ${formatCents(item.b, item.decimalPlaces)} = ?`;
+
+      setAbacusFromCents(item.a);
+      submitBtn.disabled = false;
+      nextBtn.disabled = true;
+      nextBtn.textContent = currentIndex === questions.length - 1 ? "完成 Finish" : "▷ 下一題 Next";
+      messageEl.textContent = "第一個數字已放在算盤上，請完成計算。The first number is preloaded.";
+      messageEl.className = "message";
+
+      updateStats();
+      requestAnimationFrame(fitImportantNumbers);
+    }
+
+    function startSession(){
+      clearInterval(timerId);
+      hideCompletion();
+
+      questions = generateQuestions();
+      currentIndex = 0;
+      correctCount = 0;
+      answeredCount = 0;
+      startedAt = Date.now();
+      running = true;
+      currentAnswered = false;
+
+      timerEl.textContent = "00:00";
+      timerId = setInterval(updateTimer, 250);
+
+      startBtn.textContent = "↻ 重新開始 Restart";
+      difficultyEl.disabled = true;
+      decimalsEl.disabled = true;
+      questionCountEl.disabled = true;
+
+      showCurrentQuestion();
+    }
+
+    function submitAnswer(){
+      if(!running || currentAnswered) return;
+
+      const item = questions[currentIndex];
+      const current = getCurrentCents();
+      const isCorrect = current === item.answer;
+      const formattedAnswer = formatCents(item.answer, item.decimalPlaces);
+
+      answeredCount += 1;
+      currentAnswered = true;
+      answerValueEl.textContent = formattedAnswer;
+
+      if(isCorrect){
+        correctCount += 1;
+        answerCellEl.className = "info-cell answer-cell correct";
+        messageEl.textContent = "答對了！Correct!";
+        messageEl.className = "message ok";
+      }else{
+        answerCellEl.className = "info-cell answer-cell wrong";
+        messageEl.textContent = `正確答案：${formattedAnswer}｜Correct answer: ${formattedAnswer}`;
+        messageEl.className = "message bad";
+      }
+
+      submitBtn.disabled = true;
+      nextBtn.disabled = false;
+      updateStats();
+      requestAnimationFrame(fitImportantNumbers);
+    }
+
+    function nextQuestion(){
+      if(!running || !currentAnswered) return;
+
+      if(currentIndex >= questions.length - 1){
+        finishSession();
+        return;
+      }
+
+      currentIndex += 1;
+      showCurrentQuestion();
+    }
+
+    function finishSession(){
+      running = false;
+      clearInterval(timerId);
+      updateTimer();
+
+      difficultyEl.disabled = false;
+      decimalsEl.disabled = false;
+      questionCountEl.disabled = false;
+      submitBtn.disabled = true;
+      nextBtn.disabled = true;
+
+      const total = questions.length;
+      const accuracy = total ? Math.round(correctCount / total * 100) : 0;
+      showCompletion(accuracy, correctCount, total, timerEl.textContent);
+    }
+
+    function resetToZero(){
+      setAbacusFromCents(0);
+      resetAnswerDisplay();
+      messageEl.textContent = "算盤已歸零。Abacus reset to 0.";
+      messageEl.className = "message";
+    }
+
+    function nextDifficulty(){
+      const levels = ["easy", "medium", "advanced"];
+      const current = levels.indexOf(difficultyEl.value);
+      difficultyEl.value = levels[Math.min(current + 1, levels.length - 1)];
+      hideCompletion();
+      startSession();
+    }
+
+    function resultPresentation(accuracy){
+      if(accuracy === 100) return {icon:"🏆", title:"完美挑戰！Perfect!", subtitle:"Excellent focus and accuracy!"};
+      if(accuracy >= 80) return {icon:"🌟", title:"表現優秀！Excellent!", subtitle:"Great calculation and concentration!"};
+      if(accuracy >= 60) return {icon:"👏", title:"完成得很好！Well Done!", subtitle:"Keep practising and building confidence!"};
+      return {icon:"🌱", title:"完成挑戰！Challenge Completed", subtitle:"Every practice strengthens your skills!"};
+    }
+
+    function showCompletion(accuracy, correct, total, time){
+      const presentation = resultPresentation(accuracy);
+      $("resultIcon").textContent = presentation.icon;
+      $("resultTitle").textContent = presentation.title;
+      $("resultSubtitle").textContent = presentation.subtitle;
+      $("resultAccuracy").textContent = `${accuracy}%`;
+      $("resultCorrect").textContent = `${correct} / ${total}`;
+      $("resultTime").textContent = time;
+      $("nextLevelBtn").hidden = difficultyEl.value === "advanced";
+
+      completionOverlay.classList.add("show");
+      document.body.style.overflow = "hidden";
+      startCelebration(accuracy);
+      $("playAgainBtn").focus();
+    }
+
+    function hideCompletion(){
+      completionOverlay.classList.remove("show");
+      stopCelebration();
+      document.body.style.overflow = "";
+    }
+
+    function openGuide(){
+      lastFocused = document.activeElement;
+      guideModal.classList.add("show");
+      document.body.style.overflow = "hidden";
+      $("guideClose").focus();
+    }
+
+    function closeGuide(){
+      guideModal.classList.remove("show");
+      document.body.style.overflow = "";
+      if(lastFocused && typeof lastFocused.focus === "function") lastFocused.focus();
+    }
+
+    async function copyUrl(){
+      const url = "https://mariarlee.github.io/AI-mind-care-abacus/";
+      try{
+        await navigator.clipboard.writeText(url);
+        $("copyUrlBtn").textContent = "已複製 Copied!";
+      }catch(_){
+        const textarea = document.createElement("textarea");
+        textarea.value = url;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand("copy");
+        textarea.remove();
+        $("copyUrlBtn").textContent = "已複製 Copied!";
+      }
+      setTimeout(() => $("copyUrlBtn").textContent = "複製網址 Copy URL", 1500);
+    }
+
+    function startCelebration(accuracy){
+      stopCelebration();
+      if(window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+      const canvas = $("celebrationCanvas");
+      const ctx = canvas.getContext("2d");
+      const ratio = Math.min(window.devicePixelRatio || 1, 2);
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = Math.max(1, Math.round(rect.width * ratio));
+      canvas.height = Math.max(1, Math.round(rect.height * ratio));
+      ctx.setTransform(ratio,0,0,ratio,0,0);
+
+      const width = rect.width;
+      const height = rect.height;
+      const count = accuracy >= 80 ? 120 : 70;
+      const particles = Array.from({length: count}, () => ({
+        x: width / 2 + (Math.random() - .5) * 80,
+        y: height * .25 + (Math.random() - .5) * 30,
+        vx: (Math.random() - .5) * 8,
+        vy: -Math.random() * 6 - 2,
+        gravity: .08 + Math.random() * .07,
+        size: 3 + Math.random() * 5,
+        rotation: Math.random() * Math.PI,
+        spin: (Math.random() - .5) * .2,
+        hue: Math.random() * 360,
+        life: 100 + Math.random() * 80
+      }));
+
+      function frame(){
+        ctx.clearRect(0,0,width,height);
+        let alive = false;
+
+        for(const p of particles){
+          if(p.life <= 0) continue;
+          alive = true;
+          p.life -= 1;
+          p.x += p.vx;
+          p.y += p.vy;
+          p.vy += p.gravity;
+          p.rotation += p.spin;
+
+          ctx.save();
+          ctx.translate(p.x,p.y);
+          ctx.rotate(p.rotation);
+          ctx.globalAlpha = Math.min(1,p.life/35);
+          ctx.fillStyle = `hsl(${p.hue} 85% 58%)`;
+          ctx.fillRect(-p.size/2,-p.size/2,p.size,p.size*1.6);
+          ctx.restore();
+        }
+
+        if(alive && completionOverlay.classList.contains("show")){
+          celebrationFrame = requestAnimationFrame(frame);
+        }
+      }
+
+      celebrationFrame = requestAnimationFrame(frame);
+    }
+
+    function stopCelebration(){
+      if(celebrationFrame){
+        cancelAnimationFrame(celebrationFrame);
+        celebrationFrame = null;
+      }
+      const canvas = $("celebrationCanvas");
+      const ctx = canvas.getContext("2d");
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+    }
+
+    startBtn.addEventListener("click", startSession);
+    submitBtn.addEventListener("click", submitAnswer);
+    nextBtn.addEventListener("click", nextQuestion);
+    resetBtn.addEventListener("click", resetToZero);
+
+    $("guideBtn").addEventListener("click", openGuide);
+    $("guideClose").addEventListener("click", closeGuide);
+    $("copyUrlBtn").addEventListener("click", copyUrl);
+    $("startPlayingBtn").addEventListener("click", closeGuide);
+
+    guideModal.addEventListener("click", event => {
+      if(event.target === guideModal) closeGuide();
+    });
+
+    $("playAgainBtn").addEventListener("click", () => {
+      hideCompletion();
+      startSession();
+    });
+    $("nextLevelBtn").addEventListener("click", nextDifficulty);
+
+    completionOverlay.addEventListener("click", event => {
+      if(event.target === completionOverlay) hideCompletion();
+    });
+
+    document.addEventListener("keydown", event => {
+      if(event.key === "Escape"){
+        if(guideModal.classList.contains("show")) closeGuide();
+        else if(completionOverlay.classList.contains("show")) hideCompletion();
+      }
+    });
+
+    window.addEventListener("resize", () => requestAnimationFrame(fitImportantNumbers));
+    window.addEventListener("pagehide", () => {
+      clearInterval(timerId);
+      stopCelebration();
+    });
+
+    buildAbacus();
+    updateStats();
+    requestAnimationFrame(fitImportantNumbers);
+  })();
+  </script>
+</body>
+</html>
