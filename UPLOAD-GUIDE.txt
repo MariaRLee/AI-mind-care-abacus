@@ -1,0 +1,25 @@
+AI-Mind Care 算盤算力 V24 — One URL Chinese/English Mobile-First Senior Friendly Edition
+
+請上傳：
+1. index.html
+2. README.md
+3. COPYRIGHT-AND-USE.md
+
+GitHub Repository:
+https://github.com/MariaRLee/AI-mind-care-abacus
+
+Commit message 建議：
+Upgrade to V24 One-URL Chinese-English Mobile-First Edition
+
+上傳後測試：
+[ ] 中文 / English 切換正常
+[ ] Guide 顯示對應語言
+[ ] 手機版主畫面只顯示單一語言
+[ ] 手機版算盤比 V23 系列更大
+[ ] 設定區可收合
+[ ] 開始、提交、下一題、歸零正常
+[ ] 加法與減法正常
+[ ] 整數、1 位、2 位小數正常
+[ ] 5 題與 10 題正常
+[ ] 算珠可點擊與拖曳
+[ ] Full Terms 連結正常
