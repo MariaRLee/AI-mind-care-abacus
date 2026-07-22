@@ -1,2 +1,0 @@
-V24.2 上傳：index.html、README.md、COPYRIGHT-AND-USE.md
-Commit: Fix V24.2 desktop visibility and mobile collapsed settings
